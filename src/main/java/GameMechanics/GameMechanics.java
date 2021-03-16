@@ -1,17 +1,15 @@
 package GameMechanics;
 
 import Displays.Display;
-import Main.Tools;
-import Menus.MenuService;
 import NPCs.Goblin;
 import NPCs.NPC;
 import NPCs.Troll;
 
-import java.awt.*;
 import java.util.*;
 
-public class GameMechanics extends Thread {
+public class GameMechanics implements Runnable {
 
+    private boolean gameOver= false;
     private int currentFloor;
     private boolean newFloor = true;
     private final ArrayList<NPC> enemies = new ArrayList<>();
@@ -21,43 +19,35 @@ public class GameMechanics extends Thread {
     private int[] numberOfUniqueEnemies;
     private String enemyLog = "";
     private boolean combatDone = true;
-    public static boolean playerTurn;
+    private final Thread gameMechanicsThread;
+    //set a lock to control the thread
+    private final Object lock = new Object();
 
-    public GameMechanics() {
-        GameObjects.initializeGameObjects();
-        MenuService.menuInitializer();
+
+    public GameMechanics(){
+        //set the floor
         GameObjects.FLOORS.add(new Floor(1));
         this.setCurrentFloor(GameObjects.FLOORS.get(0).getLevel());
+        gameMechanicsThread = new Thread(this);
+        gameMechanicsThread.start();
 
     }
 
-    public void runGame(Display display) {
-        if (newFloor) {
-            spawnEnemies();
-            logEnemies();
-            rollInitiative();
-            //call repaint to update the screen
-            display.getCanvas().repaint();
-            newFloor = !newFloor;
-            //start combat
-            combatDone = false;
-            while (!combatDone) {
-                combat();
-                //exit if all enemies are defeated
-                combatDone = initiativeMap.entrySet().stream().allMatch(entry -> entry.getValue().getCurrentHp() <= 0);
-            }
-            System.out.println("fking kekw");
-            if (combatDone) {
-                //loot
-                //go to new Floor
-                this.currentFloor = +1;
-                GameObjects.FLOORS.add(new Floor(this.getCurrentFloor()));
+    @Override
+    public void run() {
+
+        while (!gameOver){
+            //gameloop here, will run in the background
+            synchronized (lock) {
+                try {
+                    //wait until the game is started
+                    lock.wait();
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
+
             }
         }
-    }
-
-    public void playerAttack() {
-
     }
 
     private void combat() {
@@ -75,13 +65,12 @@ public class GameMechanics extends Thread {
                         interruptedException.printStackTrace();
                     }
                 }
-                System.out.println("ik ben hier");
                 // do monstermove if their hp is > 0
             } else if (entry.getValue().getCurrentHp() > 0) {
                 Display.MESSAGE_BOX.setText(entry.getValue().getName() + " " + entry.getKey() + "'s turn");
                 entry.getValue().setTurn(true);
                 // monstermove
-                System.out.println("monsterlmao");
+                System.out.println("monsterturn");
             }
         }
     }
@@ -156,6 +145,14 @@ public class GameMechanics extends Thread {
         }
     }
 
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public boolean isGameOver() {
+        return this.gameOver;
+    }
+
     public void setCurrentFloor(int currentFloor) {
         this.currentFloor = currentFloor;
     }
@@ -164,20 +161,11 @@ public class GameMechanics extends Thread {
         return this.currentFloor;
     }
 
-    public int[] getNumberOfUniqueEnemies() {
-        return this.numberOfUniqueEnemies;
+    public Thread getGameMechanicsThread() {
+        return this.gameMechanicsThread;
     }
 
-    public String getEnemyLog() {
-        return this.enemyLog;
-    }
-
-    public ArrayList<NPC> getEnemies() {
-        return this.enemies;
-    }
-
-    public HashMap<Integer, NPC> getInitiativeMap(){
-        return this.initiativeMap;
+    public Object getLock(){
+        return this.lock;
     }
 }
-
