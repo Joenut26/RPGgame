@@ -1,11 +1,10 @@
 package Main;
 
 import Displays.Display;
-import GameMechanics.*;
 
 public class GameState {
 
-    public enum State{
+    public enum State {
         MENU_STATE,
         OPTIONS_STATE,
         CHARACTER_STATE,
@@ -15,11 +14,9 @@ public class GameState {
     }
 
     public static State currentState = State.MENU_STATE;
-    private final GameMechanics gameMechanics = new GameMechanics();
-    private final Display display = new Display(gameMechanics);
 
-    public void gameStateUpdate(){
-        switch (currentState){
+    public static void gameStateUpdate(Display display) {
+        switch (currentState) {
             case MENU_STATE:
                 display.getCurrentPanel().show(display.getMainMenu().getParent(), "mainMenu");
                 break;
@@ -30,8 +27,6 @@ public class GameState {
                 break;
             case INGAME_STATE:
                 display.getCurrentPanel().show(display.getMainPanel().getParent(), "mainPanel");
-                //call the mainGame method because this is where we start combining display and logic
-                gameMechanics.runGame(display);
                 break;
             case CHARACTER_STATE:
                 display.getCurrentPanel().show(display.getCharacterPanel().getParent(), "character");
@@ -39,7 +34,4 @@ public class GameState {
         }
     }
 
-    public GameMechanics getGameMechanics(){
-        return gameMechanics;
-    }
 }
