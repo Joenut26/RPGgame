@@ -1,6 +1,8 @@
 package Displays;
 
+import GameMechanics.*;
 import Main.Tools;
+import NPCs.NPC;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,8 +20,13 @@ public class GameScreen extends JPanel implements Runnable {
     private int imageWidth, imageHeight;
     private Image playerImage;
     private Image backGround;
+    private final GameMechanics gameMechanics;
+    private final Font mainFont = new Font("Lucida Console", Font.BOLD, 12);
+    private int offSet = 5;
 
-    public GameScreen() {
+
+    public GameScreen(final GameMechanics gameMechanics) {
+        this.gameMechanics = gameMechanics;
         initGameScreen();
     }
 
@@ -48,12 +55,57 @@ public class GameScreen extends JPanel implements Runnable {
         super.paintComponent(g);
         g.drawImage(getBackGround(), 0, 0, getWidth(), getHeight(), null);
         g.drawImage(getPlayerImage(), playerX, playerY, imageWidth, imageHeight, null);
+        for (NPC enemy : gameMechanics.getEnemies()) {
+            g.drawImage(enemy.getMonsterImage(), (int) enemy.getPositionX(), (int) enemy.getPositionY(), imageWidth, imageHeight, null);
+        }
+        //healthbar/resourcebar/name/icon in top left corner
+        //icon
+        g.drawImage(GameObjects.player.getPlayerIcon(), 0, 0, (int) (xScale * getWidth()), (int) (xScale * getWidth()), null);
+        g.drawRect(0, 0, (int) (xScale * getWidth()), (int) (xScale * getWidth()));
+        //name
+        g.setFont(mainFont);
+        g.setColor(Color.BLACK);
+        //font metrics to place the text on the screen
+        FontMetrics fontMetrics = g.getFontMetrics();
+        String name = GameObjects.player.getName();
+        g.drawString(name, (int) (xScale * getWidth()) + offSet, (int) ((xScale * getWidth() / 3) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent());
+        //healthbar space and make the bars gray (paint health in red on top of it later)
+        g.setColor(Color.GRAY);
+        g.fillRect((int) (xScale * getWidth()), (int) (xScale * getWidth() / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
+        //resourcebar space
+        g.fillRect((int) (xScale * getWidth()), (int) (xScale * getWidth() * 2 / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
+        //now draw the actual healthbar that depends on the hitpoints of the player (same starting points as the background bar, same height but adjust width to the percantage hp
+        // (current hp/max hp) * bar width
+        var hpWidth = GameObjects.player.getCurrentHp() / GameObjects.player.getHitPoints();
+        g.setColor(Color.GREEN);
+        g.fillRect((int) (xScale * getWidth()), (int) (xScale * getWidth() / 3), (int) (2 * xScale * getWidth() * hpWidth), (int) (xScale * getWidth() / 3));
+        // resource bar TODO use different colors for classes resources
+        var resourceWidth = GameObjects.player.getCurrentResource() / GameObjects.player.getResource();
+        g.setColor(Color.BLUE);
+        g.fillRect((int) (xScale * getWidth()), (int) (xScale * getWidth() * 2 / 3), (int) (2 * xScale * getWidth() * resourceWidth), (int) (xScale * getWidth() / 3));
+        g.setColor(Color.BLACK);
+        //display hp and resource information
+        String hpInfo = (int) GameObjects.player.getCurrentHp() + "/" + (int) GameObjects.player.getHitPoints() + " " + (int) (hpWidth * 100) + "%";
+        g.drawString(hpInfo, (int) (xScale * getWidth() + offSet), (int) (((xScale * getWidth()) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent()));
+        String resourceInfo = (int) GameObjects.player.getCurrentResource() + "/" + (int) GameObjects.player.getResource() + " " + (int) (resourceWidth * 100) + "%";
+        g.drawString(resourceInfo, (int) (xScale * getWidth() + offSet), (int) (((xScale * getWidth() * 5/3) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent()));
+        //borders for the bars
+        g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
+        g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() * 2 / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
+        //current target top right
         Toolkit.getDefaultToolkit().sync();
+    }
+
+    //provide starting coordinates for enemies
+    private void initialState() {
+        for (NPC enemy : gameMechanics.getEnemies()) {
+            enemy.setPositionX(enemy.getPositionX() * WIDTH);
+            enemy.setPositionY(enemy.getPositionY() * HEIGHT);
+        }
     }
 
     private void update() {
         //do positions for animations here
-
         imageWidth = (int) (xScale * getWidth());
         imageHeight = (int) (yScale * getHeight());
 
@@ -65,6 +117,17 @@ public class GameScreen extends JPanel implements Runnable {
         long oldTime, timeDiff, sleep;
         //get current time
         oldTime = System.currentTimeMillis();
+
+        //wait for a notification to set up the drawing
+        synchronized (gameMechanics.getGameScreenLock()) {
+            try {
+                gameMechanics.getGameScreenLock().wait();
+                initialState();
+                repaint();
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+        }
 
         //loop
         while (!gameOver) {

@@ -16,6 +16,7 @@ class DisplayTest {
 
     @BeforeEach
     void setUp() {
+
     }
 
     @Test
