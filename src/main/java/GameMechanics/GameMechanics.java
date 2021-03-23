@@ -9,7 +9,7 @@ import java.util.*;
 
 public class GameMechanics implements Runnable {
 
-    private boolean gameOver= false;
+    private boolean gameOver = false;
     private int currentFloor;
     private boolean newFloor = true;
     private final ArrayList<NPC> enemies = new ArrayList<>();
@@ -18,13 +18,15 @@ public class GameMechanics implements Runnable {
     //array of integers which collects the number of each monstertype ( 0 = goblin, 1 = troll etc)
     private int[] numberOfUniqueEnemies;
     private String enemyLog = "";
-    private boolean combatDone = true;
+    private boolean gameStarted = false;
     private final Thread gameMechanicsThread;
     //set a lock to control the thread
     private final Object lock = new Object();
+    private final Object playerTurn = new Object();
+    private final Object gameScreenLock = new Object();
 
 
-    public GameMechanics(){
+    public GameMechanics() {
         //set the floor
         GameObjects.FLOORS.add(new Floor(1));
         this.setCurrentFloor(GameObjects.FLOORS.get(0).getLevel());
@@ -33,19 +35,46 @@ public class GameMechanics implements Runnable {
 
     }
 
+    //called when a new GameMechanics is instantiated by thread.start()
     @Override
     public void run() {
 
-        while (!gameOver){
+        while (!gameOver) {
             //gameloop here, will run in the background
-            synchronized (lock) {
-                try {
-                    //wait until the game is started
-                    lock.wait();
-                } catch (InterruptedException interruptedException) {
-                    interruptedException.printStackTrace();
+            if (!gameStarted) {
+                synchronized (lock) {
+                    try {
+                        //wait until the game is started
+                        lock.wait();
+                        gameStarted = true;
+                    } catch (InterruptedException interruptedException) {
+                        interruptedException.printStackTrace();
+                    }
                 }
+            }
+            //Spawn enemies and set initiatives for every new floor
+            //synchronize with the gameScreen and notify it when enemies are spawned so the initial
+            //positions of the enemies are correct
+            synchronized (gameScreenLock) {
+                if (newFloor) {
+                    spawnEnemies();
+                    rollInitiative();
+                    newFloor = !newFloor;
+                }
+                gameScreenLock.notifyAll();
+            }
+            //If the hp of every enemy is 0, combat is over
+            boolean combatDone = initiativeMap.entrySet().stream().allMatch(entry -> entry.getValue().getCurrentHp() <= 0);
 
+            if (!combatDone) {
+                combat();
+                //exit if all enemies are defeated
+            } else {
+                //loot
+                //go to new Floor
+                this.currentFloor = +1;
+                GameObjects.FLOORS.add(new Floor(this.getCurrentFloor()));
+                newFloor = !newFloor;
             }
         }
     }
@@ -57,9 +86,10 @@ public class GameMechanics implements Runnable {
                 Display.MESSAGE_BOX.setText("Your turn");
                 GameObjects.player.setTurn(true);
                 // playermove
-                synchronized (this) {
+                synchronized (playerTurn) {
                     try {
-                        wait();
+                        //wait for user input
+                        playerTurn.wait();
                     } catch (InterruptedException interruptedException) {
                         System.out.println(interruptedException.getMessage());
                         interruptedException.printStackTrace();
@@ -123,6 +153,9 @@ public class GameMechanics implements Runnable {
             //set the current hp of the enemies to max
             enemies.get(i).setCurrentHp(enemies.get(i).getHitPoints());
 
+            //set coordinates
+            enemies.get(i).setPositionX(0.6 + i * 0.15);
+            enemies.get(i).setPositionY(0.6);
         }
         System.out.println(enemies);
     }
@@ -161,11 +194,31 @@ public class GameMechanics implements Runnable {
         return this.currentFloor;
     }
 
+    public ArrayList<NPC> getEnemies() {
+        return this.enemies;
+    }
+
     public Thread getGameMechanicsThread() {
         return this.gameMechanicsThread;
     }
 
-    public Object getLock(){
+    public Object getLock() {
         return this.lock;
+    }
+
+    public Object getPlayerTurn() {
+        return this.playerTurn;
+    }
+
+    public boolean isNewFloor() {
+        return this.newFloor;
+    }
+
+    public boolean isGameStarted() {
+        return this.gameStarted;
+    }
+
+    public Object getGameScreenLock() {
+        return this.gameScreenLock;
     }
 }

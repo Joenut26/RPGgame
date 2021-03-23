@@ -36,7 +36,7 @@ public class Display extends JFrame {
     private final JPanel optionDeck = new JPanel(currentOption);
     private final JPanel gameOptions = new JPanel();
     private final JPanel attackOptions = new JPanel();
-    private final GameScreen canvas = new GameScreen();
+    private final GameScreen canvas;
 
     private Image background = Tools.requestImage("src/main/resources/BigBG.jpg");
 
@@ -45,9 +45,11 @@ public class Display extends JFrame {
 
     public Display(GameMechanics gameMechanics){
         this.gameMechanics = gameMechanics;
+        this.canvas = new GameScreen(this.gameMechanics);
         mainMenu();
         createCharacter();
         mainPanel();
+        attackOptions();
         initDisplay();
     }
 
@@ -70,7 +72,6 @@ public class Display extends JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setVisible(true);
-
 
     }
 
@@ -96,7 +97,7 @@ public class Display extends JFrame {
         }
     }
 
-    public void mainPanel() {
+    private void mainPanel() {
 
         //This will be the "game screen with a filled out canvas (weight in y set to 1)
         canvas.setPlayerImage(Tools.requestImage("src/main/resources/idle.png"));
@@ -125,7 +126,7 @@ public class Display extends JFrame {
 
         for (int i = 0; i < buttons.length; i++) {
             buttons[i] = new JButton(MenuService.gameOptionsList.get(i));
-            buttons[i].addActionListener(EventHandler.gameOptionsListener(buttons, this));
+            buttons[i].addActionListener(EventHandler.gameOptionsListener(buttons, this, gameMechanics));
             optionsConstraints.fill = GridBagConstraints.BOTH;
             //place buttons in a square
             optionsConstraints.weightx = 1;
@@ -146,7 +147,7 @@ public class Display extends JFrame {
 
     }
 
-    public void createCharacter() {
+    private void createCharacter() {
         GridBagLayout characterGrid = new GridBagLayout();
         GridBagConstraints characterConstraints = new GridBagConstraints();
         characterPanel.setLayout(characterGrid);
@@ -198,6 +199,31 @@ public class Display extends JFrame {
 
     }
 
+    private void attackOptions() {
+        GridBagLayout attacksLayout = new GridBagLayout();
+        GridBagConstraints attacksConstraints = new GridBagConstraints();
+        attackOptions.setLayout(attacksLayout);
+
+        JButton[] buttons = new JButton[MenuService.warriorAttacks.size()];
+
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i] = new JButton(MenuService.warriorAttacks.get(i));
+            buttons[i].addActionListener(EventHandler.attackOptionsListener(buttons, this, gameMechanics));
+            attacksConstraints.fill = GridBagConstraints.BOTH;
+            attacksConstraints.weightx = 1;
+            attacksConstraints.weighty = 1;
+            if (i < 2) {
+                attacksConstraints.gridx = i;
+                attacksConstraints.gridy = 0;
+            } else {
+                attacksConstraints.gridx = i - 2;
+                attacksConstraints.gridy = 1;
+            }
+            attackOptions.add(buttons[i], attacksConstraints);
+        }
+        optionDeck.add("attackOptions", attackOptions);
+    }
+
     //Function to set the constants for the gridbaglayout
     private void setConstraints(final GridBagConstraints gridBagConstraints, final int fill, final double weightx,
                                 final double weighty, final int gridwidth, final int gridheight, final int gridx,
@@ -209,6 +235,14 @@ public class Display extends JFrame {
         gridBagConstraints.gridheight = gridheight;
         gridBagConstraints.gridx = gridx;
         gridBagConstraints.gridy = gridy;
+    }
+
+    public JPanel getOptionDeck() {
+        return this.optionDeck;
+    }
+
+    public GameMechanics getGameMechanics() {
+        return this.gameMechanics;
     }
 
     public CardLayout getCurrentOption() {

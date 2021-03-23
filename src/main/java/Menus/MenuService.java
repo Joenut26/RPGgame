@@ -45,10 +45,10 @@ public class MenuService {
     }
 
     private static void setWarriorAttacks(){
-        warriorAttacks.add("Auto attack (+5 rage)");
-        warriorAttacks.add("Reckless Strike (-10 rage)");
-        warriorAttacks.add("Dragon Swing (-10 rage)");
-        warriorAttacks.add("Devastating Blow (- 20 rage)");
+        warriorAttacks.add("Auto attack");
+        warriorAttacks.add("Reckless Strike");
+        warriorAttacks.add("Dragon Swing");
+        warriorAttacks.add("Devastating Blow");
     }
 }
 

@@ -29,10 +29,6 @@ public class MainGame {
 
         EventQueue.invokeLater(() ->{
             final MainGame mainGame = new MainGame();
-
-            //while (!done) {
-                //mainGame.gameState.gameStateUpdate(mainGame.display);
-            //}
         });
     }
 

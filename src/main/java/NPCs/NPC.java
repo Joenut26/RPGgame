@@ -19,6 +19,8 @@ public class NPC {
     protected double initiative;
     protected boolean turn;
     protected int baseHp;
+    protected double positionX;
+    protected double PositionY;
     protected Image monsterImage;
     protected Image monsterIcon;
 
@@ -26,8 +28,23 @@ public class NPC {
     public NPC() {
 
     }
-
     // Get & set fields
+
+    public double getPositionY() {
+        return this.PositionY;
+    }
+
+    public void setPositionY(final double positionY) {
+        this.PositionY = positionY;
+    }
+
+    public double getPositionX() {
+        return this.positionX;
+    }
+
+    public void setPositionX(final double positionX) {
+        this.positionX = positionX;
+    }
 
     public Image getMonsterIcon() {
         return this.monsterIcon;

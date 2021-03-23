@@ -2,12 +2,9 @@ package Listeners;
 
 import Displays.Display;
 
-import Displays.GameScreen;
 import GameMechanics.GameMechanics;
 import GameMechanics.GameObjects;
 import Main.GameState;
-
-
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.Arrays;
@@ -15,7 +12,7 @@ import java.util.Arrays;
 public abstract class EventHandler implements KeyListener, ActionListener {
 
     //keylistener when escape is pressed
-    public static KeyListener attackOptionsKeyListener(Display display){
+    public static KeyListener attackOptionsKeyListener(Display display) {
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -24,7 +21,7 @@ public abstract class EventHandler implements KeyListener, ActionListener {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                     //go back to previous panel in options deck
 
                 }
@@ -82,7 +79,7 @@ public abstract class EventHandler implements KeyListener, ActionListener {
         };
     }
 
-    public static ActionListener characterReadyListener(JRadioButton[] buttons, JButton button, JTextField textField, Display display, GameMechanics gameMechanics){
+    public static ActionListener characterReadyListener(JRadioButton[] buttons, JButton button, JTextField textField, Display display, GameMechanics gameMechanics) {
         return action -> {
             //listener for the ready button
             if (action.getSource() == button) {
@@ -91,13 +88,16 @@ public abstract class EventHandler implements KeyListener, ActionListener {
                     GameObjects.player.setName(textField.getText());
                     synchronized (gameMechanics.getLock()) {
                         //let the gamemechanics thread know it can continue
-                        gameMechanics.getLock().notify();
+                        gameMechanics.getLock().notifyAll();
                     }
+                    //switch to ingame state
                     GameState.currentState = GameState.State.INGAME_STATE;
 
                 } else if (textField.getText().isEmpty()) {
+                    //message when the player hasn't entered a name
                     JOptionPane.showMessageDialog(display.getCharacterPanel(), "Please enter your name");
                 } else if (Arrays.stream(buttons).noneMatch(AbstractButton::isSelected)) {
+                    //message when there is no class selected
                     JOptionPane.showMessageDialog(display.getCharacterPanel(), "Please choose a class");
                 }
             }
@@ -106,17 +106,15 @@ public abstract class EventHandler implements KeyListener, ActionListener {
     }
 
     //Listener for the gameOptions panel
-    public static ActionListener gameOptionsListener(JButton[] buttons, Display display) {
+    public static ActionListener gameOptionsListener(JButton[] buttons, Display display, GameMechanics gameMechanics) {
         return click -> {
             if (click.getSource() == buttons[0]) {
                 //only take action when it's the player's turn
-                if (GameObjects.player.isTurn()){
+                if (GameObjects.player.isTurn()) {
                     //attack
                     display.getCurrentOption().show(display.getAttackOptions().getParent(), "attackOptions");
                     Display.MESSAGE_BOX.setText("What do you want to use? Press escape to go back");
-
                 } else {
-                    System.out.println("kekw");
                     Display.MESSAGE_BOX.setText("It's not your turn");
                 }
             } else if (click.getSource() == buttons[1]) {
@@ -126,10 +124,31 @@ public abstract class EventHandler implements KeyListener, ActionListener {
             } else if (click.getSource() == buttons[3]) {
                 System.out.println("yep");
             }
-            GameState.gameStateUpdate(display);
         };
     }
 
+    //Listener for the attackOptions "card" in the Options deck
+    public static ActionListener attackOptionsListener(JButton[] buttons, Display display, GameMechanics gameMechanics) {
+        return click -> {
+            synchronized (gameMechanics.getPlayerTurn()) {
+                gameMechanics.getPlayerTurn().notify();
+            }
+            if (click.getSource() == buttons[0]) {
+                //attack 1
+                //execute attack here
+                GameObjects.player.setActionDone(true);
+                GameObjects.player.setTurn(false);
+            } else if (click.getSource() == buttons[1]) {
+                System.out.println("attack2");
+            } else if (click.getSource() == buttons[2]) {
+                System.out.println("attack3");
+            } else if (click.getSource() == buttons[3]) {
+                System.out.println("attack4");
+            }
+            //switch back to the main options
+            display.getCurrentOption().previous(display.getOptionDeck());
+        };
+    }
 
 
 }
