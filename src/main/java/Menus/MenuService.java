@@ -49,6 +49,10 @@ public class MenuService {
         warriorAttacks.add("Reckless Strike");
         warriorAttacks.add("Dragon Swing");
         warriorAttacks.add("Devastating Blow");
+//        warriorAttacks.add("Auto attack");
+//        warriorAttacks.add("Reckless Strike");
+//        warriorAttacks.add("Dragon Swing");
+//        warriorAttacks.add("Devastating Blow");
     }
 }
 

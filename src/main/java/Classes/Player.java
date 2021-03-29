@@ -1,17 +1,13 @@
 package Classes;
 
+import Main.GameEntity;
+
 import java.awt.*;
 
-public class Player {
+public class Player extends GameEntity {
 
     protected String playerClass;
-    protected String name;
-    protected int level;
-    //max hp
-    protected double hitPoints;
     protected double baseHp;
-    //current hp
-    protected double currentHp;
     protected String resourceType;
     //max resource
     protected double resource;
@@ -22,33 +18,20 @@ public class Player {
     protected double specialResource;
     //current special resource
     protected double currentSpecialResource;
-    protected int intelligence;
-    protected int strength;
-    protected int dexterity;
-    protected int stamina;
-    protected int hit;
     protected double experience;
     protected double xpToLevelUp = 100;
-    protected int initiative;
     protected boolean turn;
     protected boolean actionDone;
-    protected Image playerIcon;
-    
+
+
+
     public Player() {
 
     }
 
     // Get & set fields
 
-    public void setPlayerIcon(final Image playerIcon){
-        this.playerIcon = playerIcon;
-    }
-
-    public Image getPlayerIcon(){
-        return this.playerIcon;
-    }
-
-    public void setBaseHp(final double baseHp) {
+       public void setBaseHp(final double baseHp) {
         this.baseHp = baseHp;
     }
 
@@ -56,8 +39,8 @@ public class Player {
         return this.baseHp;
     }
 
-    public boolean isAction() {
-        return actionDone;
+    public boolean isActionDone() {
+        return this.actionDone;
     }
 
     public void setActionDone(final boolean actionDone) {
@@ -80,36 +63,6 @@ public class Player {
         this.playerClass = playerClass;
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    public int getLevel() {
-        return this.level;
-    }
-
-    public void setLevel(final int level) {
-        this.level = level;
-    }
-
-    public double getHitPoints() {
-        return this.hitPoints;
-    }
-    
-    public void setHitpoints(final double hitPoints) {
-        this.hitPoints = hitPoints;
-    }
-
-    public double getCurrentHp() {
-        return this.currentHp;
-    }
-    public void setCurrentHp(final double currentHp) {
-        this.currentHp = currentHp;
-    }  
 
     public String getResourceType() {
         return this.resourceType;
@@ -151,60 +104,12 @@ public class Player {
         this.specialResource = specialResource;
     }
 
-    public int getIntelligence() {
-        return this.intelligence;
-    }
-
-    public void setIntelligence(final int intelligence) {
-        this.intelligence = intelligence;
-    }
-
-    public int getStrength() {
-        return this.strength;
-    }
-
-    public void setStrength(final int strength) {
-        this.strength = strength;
-    }
-
-    public int getDexterity() {
-        return this.dexterity;
-    }
-
-    public void setDexterity(final int dexterity) {
-        this.dexterity = dexterity;
-    }
-
-    public int getStamina() {
-        return this.stamina;
-    }
-
-    public void setStamina(final int stamina) {
-        this.stamina = stamina;
-    }
-
-    public int getHit() {
-        return this.hit;
-    }
-
-    public void setHit(final int hit) {
-        this.hit = hit;
-    }
-
     public double getExperience() {
         return this.experience;
     }
 
     public void setExperience(final double experience) {
         this.experience = experience;
-    }
-
-    public double getInitiative() {
-        return this.initiative;
-    }
-
-    public void setInitiative(final int initiative) {
-        this.initiative = initiative;
     }
 
     public double getXpToLevelUp() {

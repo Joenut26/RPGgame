@@ -17,7 +17,8 @@ public class Troll extends NPC {
         this.stamina = 4;
         this.hit = 50;
         this.xpOnKill = 30;
-        this.monsterImage = Tools.requestImage("src/main/resources/troll.png");
-        this.monsterIcon = Tools.requestImage("src/main/resources/troll.png");
+        this.state = "idle";
+        this.entityImage = Tools.requestImage("src/main/resources/troll.png");
+        this.entityIcon = Tools.requestImage("src/main/resources/troll.png");
     }
 }

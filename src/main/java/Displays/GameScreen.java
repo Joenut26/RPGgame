@@ -1,11 +1,16 @@
 package Displays;
 
-import GameMechanics.*;
+import Animations.Animation;
+import Animations.EnemyAnimation;
+import Animations.PlayerAnimation;
+import GameMechanics.GameMechanics;
+import GameMechanics.GameObjects;
 import Main.Tools;
 import NPCs.NPC;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class GameScreen extends JPanel implements Runnable {
 
@@ -18,12 +23,12 @@ public class GameScreen extends JPanel implements Runnable {
     private boolean gameOver = false;
     private int playerX, playerY;
     private int imageWidth, imageHeight;
-    private Image playerImage;
     private Image backGround;
     private final GameMechanics gameMechanics;
     private final Font mainFont = new Font("Lucida Console", Font.BOLD, 12);
     private int offSet = 5;
-
+    private PlayerAnimation playerAnimation;
+    private final ArrayList<EnemyAnimation> enemyAnimations = new ArrayList<>();
 
     public GameScreen(final GameMechanics gameMechanics) {
         this.gameMechanics = gameMechanics;
@@ -37,7 +42,7 @@ public class GameScreen extends JPanel implements Runnable {
         playerX = (int) (xScale * WIDTH);
         playerY = (int) (3 * yScale * HEIGHT);
 
-        setBackGround(Tools.requestImage("src/main/resources/greekbg.png"));
+        setBackGround(Tools.requestImage("src/main/resources/Background.png"));
     }
 
     @Override
@@ -54,13 +59,23 @@ public class GameScreen extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(getBackGround(), 0, 0, getWidth(), getHeight(), null);
-        g.drawImage(getPlayerImage(), playerX, playerY, imageWidth, imageHeight, null);
+        g.drawImage(GameObjects.player.getEntityImage(), playerX, playerY, imageWidth, imageHeight, null);
         for (NPC enemy : gameMechanics.getEnemies()) {
-            g.drawImage(enemy.getMonsterImage(), (int) enemy.getPositionX(), (int) enemy.getPositionY(), imageWidth, imageHeight, null);
+            g.drawImage(enemy.getEntityImage(), (int) enemy.getPositionX(), (int) enemy.getPositionY(), (int) (imageWidth * 1.5), imageHeight *2, null);
+            // draw a triangle above the targets head if targeted
+            if (enemy.isTargeted()) {
+                int[] polyX = {(int) (enemy.getPositionX() + 0.25 * imageWidth), (int) (enemy.getPositionX() + 0.5 * imageWidth), (int) (enemy.getPositionX() + 0.75 * imageWidth)};
+                int[] polyY = {(int) (enemy.getPositionY() - 15), (int) (enemy.getPositionY() - 5), (int) (enemy.getPositionY() - 15)};
+                Color prevCol = g.getColor();
+                g.setColor(Color.GREEN);
+                g.fillPolygon(polyX, polyY, 3);
+                g.setColor(prevCol);
+            }
         }
+
         //healthbar/resourcebar/name/icon in top left corner
         //icon
-        g.drawImage(GameObjects.player.getPlayerIcon(), 0, 0, (int) (xScale * getWidth()), (int) (xScale * getWidth()), null);
+        g.drawImage(GameObjects.player.getEntityIcon(), 0, 0, (int) (xScale * getWidth()), (int) (xScale * getWidth()), null);
         g.drawRect(0, 0, (int) (xScale * getWidth()), (int) (xScale * getWidth()));
         //name
         g.setFont(mainFont);
@@ -88,7 +103,7 @@ public class GameScreen extends JPanel implements Runnable {
         String hpInfo = (int) GameObjects.player.getCurrentHp() + "/" + (int) GameObjects.player.getHitPoints() + " " + (int) (hpWidth * 100) + "%";
         g.drawString(hpInfo, (int) (xScale * getWidth() + offSet), (int) (((xScale * getWidth()) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent()));
         String resourceInfo = (int) GameObjects.player.getCurrentResource() + "/" + (int) GameObjects.player.getResource() + " " + (int) (resourceWidth * 100) + "%";
-        g.drawString(resourceInfo, (int) (xScale * getWidth() + offSet), (int) (((xScale * getWidth() * 5/3) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent()));
+        g.drawString(resourceInfo, (int) (xScale * getWidth() + offSet), (int) (((xScale * getWidth() * 5 / 3) - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent()));
         //borders for the bars
         g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
         g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() * 2 / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
@@ -101,15 +116,36 @@ public class GameScreen extends JPanel implements Runnable {
         for (NPC enemy : gameMechanics.getEnemies()) {
             enemy.setPositionX(enemy.getPositionX() * WIDTH);
             enemy.setPositionY(enemy.getPositionY() * HEIGHT);
+            EnemyAnimation enemyAnimation = new EnemyAnimation(this, enemy, gameMechanics);
+            Thread enemyAnimationThread = new Thread(enemyAnimation);
+            enemyAnimationThread.start();
+            enemyAnimations.add(enemyAnimation);
+
         }
+
+        animatePlayer();
+
     }
 
     private void update() {
+        //TODO animations now have their own sleeptimer -> make only one timer for all updates
         //do positions for animations here
         imageWidth = (int) (xScale * getWidth());
         imageHeight = (int) (yScale * getHeight());
 
+        playerX = playerAnimation.getXc();
+
+        //update states for different animations
+
     }
+
+
+    private void animatePlayer() {
+        playerAnimation = new PlayerAnimation(this, gameMechanics);
+        Thread animationThread = new Thread(playerAnimation);
+        animationThread.start();
+    }
+
 
     @Override
     public void run() {
@@ -117,6 +153,7 @@ public class GameScreen extends JPanel implements Runnable {
         long oldTime, timeDiff, sleep;
         //get current time
         oldTime = System.currentTimeMillis();
+
 
         //wait for a notification to set up the drawing
         synchronized (gameMechanics.getGameScreenLock()) {
@@ -127,6 +164,8 @@ public class GameScreen extends JPanel implements Runnable {
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }
+
+
         }
 
         //loop
@@ -137,6 +176,8 @@ public class GameScreen extends JPanel implements Runnable {
 
             timeDiff = System.currentTimeMillis() - oldTime;
             sleep = DELAY - timeDiff;
+
+
 
             if (sleep < 0) {
                 sleep = 2;
@@ -151,6 +192,7 @@ public class GameScreen extends JPanel implements Runnable {
             }
             //reset in loop
             oldTime = System.currentTimeMillis();
+
         }
     }
 
@@ -186,15 +228,8 @@ public class GameScreen extends JPanel implements Runnable {
         this.playerX = playerX;
     }
 
-    public Image getPlayerImage() {
-        return this.playerImage;
-    }
-
-    public void setPlayerImage(Image playerImage) {
-        this.playerImage = playerImage;
-    }
-
     public Thread getAnimator() {
         return animator;
     }
+
 }

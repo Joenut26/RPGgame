@@ -17,8 +17,9 @@ public class Goblin extends NPC {
         this.stamina = 3;
         this.hit = 50;
         this.xpOnKill = 20;
-        this.monsterImage = Tools.requestImage("src/main/resources/Goblin.png");
-        this.monsterIcon = Tools.requestImage("src/main/resources/flipW.jpg");
+        this.state = "idle";
+        this.entityImage = Tools.requestImage("src/main/resources/Final Assets/Goblin/goblinbomb (5).png");
+        this.entityIcon = Tools.requestImage("src/main/resources/Final Assets/Goblin/goblinbomb (5).png");
     }
 
 }
