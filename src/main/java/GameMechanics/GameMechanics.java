@@ -24,6 +24,7 @@ public class GameMechanics implements Runnable {
     private final Object lock = new Object();
     private final Object playerTurn = new Object();
     private final Object gameScreenLock = new Object();
+    private NPC target;
 
 
     public GameMechanics() {
@@ -109,16 +110,16 @@ public class GameMechanics implements Runnable {
         //set player initiative
         GameObjects.player.setInitiative(random.nextInt(20) + 1 + GameObjects.player.getDexterity());
         //monster initiatives
-        enemies.forEach(enemy -> enemy.setInitiativeNPC(random.nextInt(20) + 1 + enemy.getDexterity()));
+        enemies.forEach(enemy -> enemy.setInitiative(random.nextInt(20) + 1 + enemy.getDexterity()));
         //add the player initiative to the list to sort them
         NPC playerNPC = new NPC();
-        playerNPC.setInitiativeNPC(GameObjects.player.getInitiative());
+        playerNPC.setInitiative(GameObjects.player.getInitiative());
         playerNPC.setCurrentHp(0);
         playerNPC.setName("Player");
-        playerNPC.setMonsterIcon(GameObjects.player.getPlayerIcon());
+        playerNPC.setEntityIcon(GameObjects.player.getEntityIcon());
         enemies.add(playerNPC);
         //sort by descending order
-        enemies.sort((npc1, npc2) -> Double.compare(npc2.getInitiativeNPC(), npc1.getInitiativeNPC()));
+        enemies.sort((npc1, npc2) -> Double.compare(npc2.getInitiative(), npc1.getInitiative()));
         //put it in a map to keep track of order
         for (int i = 0; i < enemies.size(); i++) {
             initiativeMap.put(i, enemies.get(i));
@@ -155,7 +156,7 @@ public class GameMechanics implements Runnable {
 
             //set coordinates
             enemies.get(i).setPositionX(0.6 + i * 0.15);
-            enemies.get(i).setPositionY(0.6);
+            enemies.get(i).setPositionY(0.5);
         }
         System.out.println(enemies);
     }
@@ -220,5 +221,13 @@ public class GameMechanics implements Runnable {
 
     public Object getGameScreenLock() {
         return this.gameScreenLock;
+    }
+
+    public void setTarget(final NPC target) {
+        this.target = target;
+    }
+
+    public NPC getTarget() {
+        return this.target;
     }
 }

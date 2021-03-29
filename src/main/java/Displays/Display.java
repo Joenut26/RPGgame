@@ -5,6 +5,7 @@ import GameMechanics.GameObjects;
 import Listeners.EventHandler;
 import Main.Tools;
 import Menus.MenuService;
+import NPCs.NPC;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,12 +37,18 @@ public class Display extends JFrame {
     private final JPanel optionDeck = new JPanel(currentOption);
     private final JPanel gameOptions = new JPanel();
     private final JPanel attackOptions = new JPanel();
+    private JList<NPC> targets;
+    private JList<String> attackList;
+    private JScrollPane attackPanel;
+    private final JPanel targetPanel = new JPanel();
     private final GameScreen canvas;
 
     private Image background = Tools.requestImage("src/main/resources/BigBG.jpg");
 
     //Define textarea to display messages
     public static final JTextArea MESSAGE_BOX = new JTextArea();
+
+    private boolean created = false;
 
     public Display(GameMechanics gameMechanics){
         this.gameMechanics = gameMechanics;
@@ -51,6 +58,16 @@ public class Display extends JFrame {
         mainPanel();
         attackOptions();
         initDisplay();
+        //make sure these are the first to show
+        currentPanel.show(mainMenu.getParent(), "mainMenu");
+        currentOption.show(gameOptions.getParent(), "gameOptions");
+    }
+
+    public void updateDisplay(){
+
+        //make calls to update gameMechanics fields
+        targetSelection();
+        created = true;
     }
 
     private void initDisplay(){
@@ -71,11 +88,15 @@ public class Display extends JFrame {
         this.setTitle("Game");
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        optionDeck.add("targets", targetPanel);
+        optionDeck.add("attackOptions", attackOptions);
+
         this.setVisible(true);
 
     }
 
-    private void updateBackground(final Image bgImage){
+    public void updateBackground(final Image bgImage){
         this.background = bgImage;
         repaint();
 
@@ -92,7 +113,7 @@ public class Display extends JFrame {
         for (int i = 0; i < menuButtons.length; i++) {
             menuButtons[i] = new JButton(MenuService.mainMenuOptionsList.get(i));
             menuButtons[i].addActionListener(EventHandler.mainMenuListener(menuButtons, this));
-            setConstraints(mainMenuConstraints, GridBagConstraints.BOTH, 0, 0, 0, 1, 0, i);
+            setConstraints(mainMenuConstraints, 0, 0, 0, 1, 0, i);
             mainMenu.add(menuButtons[i], mainMenuConstraints);
         }
     }
@@ -100,20 +121,19 @@ public class Display extends JFrame {
     private void mainPanel() {
 
         //This will be the "game screen with a filled out canvas (weight in y set to 1)
-        canvas.setPlayerImage(Tools.requestImage("src/main/resources/idle.png"));
         // and buttons below (weight in y = 0)
         GridBagLayout mainPanelGrid = new GridBagLayout();
         GridBagConstraints mainPanelConstraints = new GridBagConstraints();
         mainPanel.setLayout(mainPanelGrid);
         //set constraints for the canvas
         canvas.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        setConstraints(mainPanelConstraints, GridBagConstraints.BOTH, 1, 0.95, 0, 1, 0, 0);
+        setConstraints(mainPanelConstraints, 1, 0.95, 0, 1, 0, 0);
         mainPanel.add(canvas, mainPanelConstraints);
 
         //add a textbox for messages
         MESSAGE_BOX.setEditable(false);
         MESSAGE_BOX.setText("You are on floor ");
-        setConstraints(mainPanelConstraints, GridBagConstraints.BOTH, 1, 0.05, 0, 1, 0, 1);
+        setConstraints(mainPanelConstraints, 1, 0.05, 0, 1, 0, 1);
         mainPanel.add(MESSAGE_BOX, mainPanelConstraints);
 
         //add components for the optiondeck
@@ -142,7 +162,7 @@ public class Display extends JFrame {
         }
         //set constraints for optionDeck
         optionDeck.add("gameOptions", gameOptions);
-        setConstraints(mainPanelConstraints, GridBagConstraints.BOTH, 1, 0, 0, 0, 0, 3);
+        setConstraints(mainPanelConstraints, 1, 0, 0, 1, 0, 3);
         mainPanel.add(optionDeck, mainPanelConstraints);
 
     }
@@ -153,16 +173,16 @@ public class Display extends JFrame {
         characterPanel.setLayout(characterGrid);
 
         JLabel nameLabel = new JLabel("Enter your name");
-        setConstraints(characterConstraints, GridBagConstraints.BOTH, 0, 0, 1, 1, 0, 0);
+        setConstraints(characterConstraints, 0, 0, 1, 1, 0, 0);
         characterPanel.add(nameLabel, characterConstraints);
 
         JTextField inputName = new JTextField();
-        setConstraints(characterConstraints, GridBagConstraints.BOTH, 0, 0, 2, 1, 0, 1);
+        setConstraints(characterConstraints, 0, 0, 2, 1, 0, 1);
         characterPanel.add(inputName, characterConstraints);
 
         JLabel classLabel = new JLabel("Choose your class");
         characterConstraints.insets = new Insets(40, 0, 0, 0);
-        setConstraints(characterConstraints, GridBagConstraints.BOTH, 0, 0, 1, 1, 0, 2);
+        setConstraints(characterConstraints, 0, 0, 1, 1, 0, 2);
         characterPanel.add(classLabel, characterConstraints);
 
         JRadioButton[] buttons = new JRadioButton[GameObjects.CLASSES.size()];
@@ -193,42 +213,85 @@ public class Display extends JFrame {
 
         JButton characterReady = new JButton("Start Game");
         characterConstraints.insets = new Insets(40, 0, 0, 0);
-        setConstraints(characterConstraints, GridBagConstraints.BOTH, 0, 0, 2, 1, 0, 5);
+        setConstraints(characterConstraints, 0, 0, 2, 1, 0, 5);
         characterReady.addActionListener(EventHandler.characterReadyListener(buttons, characterReady, inputName, this, gameMechanics));
         characterPanel.add(characterReady, characterConstraints);
 
     }
 
-    private void attackOptions() {
-        GridBagLayout attacksLayout = new GridBagLayout();
-        GridBagConstraints attacksConstraints = new GridBagConstraints();
-        attackOptions.setLayout(attacksLayout);
+    private void targetSelection() {
+        //display a list of enemies to attack
+        targets = new JList(gameMechanics.getEnemies().toArray());
+        //set up needs to be done only once
+        if(!created) {
+            targets.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            targets.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            targets.setLayoutOrientation(JList.VERTICAL);
+            GridBagLayout targetLayout = new GridBagLayout();
+            GridBagConstraints targetConstraints = new GridBagConstraints();
+            setConstraints(targetConstraints, 1, 0, 1, 2, 0, 0);
+            targetPanel.setLayout(targetLayout);
+            JScrollPane targetScrollPane = new JScrollPane(targets,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            targetPanel.add(targetScrollPane, targetConstraints);
 
-        JButton[] buttons = new JButton[MenuService.warriorAttacks.size()];
+            JButton go = new JButton("Go!");
+            go.addActionListener(EventHandler.goButton(this));
+            setConstraints(targetConstraints, 0, 0, 1, 1, 1, 0);
+            targetPanel.add(go, targetConstraints);
 
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i] = new JButton(MenuService.warriorAttacks.get(i));
-            buttons[i].addActionListener(EventHandler.attackOptionsListener(buttons, this, gameMechanics));
-            attacksConstraints.fill = GridBagConstraints.BOTH;
-            attacksConstraints.weightx = 1;
-            attacksConstraints.weighty = 1;
-            if (i < 2) {
-                attacksConstraints.gridx = i;
-                attacksConstraints.gridy = 0;
-            } else {
-                attacksConstraints.gridx = i - 2;
-                attacksConstraints.gridy = 1;
-            }
-            attackOptions.add(buttons[i], attacksConstraints);
+            JButton back = new JButton("Back");
+            back.addActionListener(EventHandler.backButton(this));
+            setConstraints(targetConstraints, 0, 0, 1, 1, 1, 1);
+            targetPanel.add(back, targetConstraints);
         }
-        optionDeck.add("attackOptions", attackOptions);
+
+        targets.addListSelectionListener(EventHandler.targetListener(gameMechanics,targets,this));
+    }
+
+    private void attackOptions() {
+
+        attackList = new JList<>(MenuService.warriorAttacks.toArray(new String[0]));
+        if(!created){
+            attackList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            attackList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            attackList.setVisibleRowCount(2);
+            attackList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+            attackList.setCellRenderer(new DefaultListCellRenderer(){
+                @Override
+                public Component getListCellRendererComponent(JList<?> list,
+                                                              Object value, int index, boolean isSelected,
+                                                              boolean cellHasFocus) {
+                    JLabel listCellRendererComponent = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected,cellHasFocus);
+                    listCellRendererComponent.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1,Color.BLACK));
+                    listCellRendererComponent.setHorizontalAlignment(SwingConstants.CENTER);
+                    return listCellRendererComponent;
+                }
+            });
+
+            GridBagLayout attackLayout = new GridBagLayout();
+            GridBagConstraints attackConstraints = new GridBagConstraints();
+            setConstraints(attackConstraints, 1, 0, 1, 2, 0, 0);
+            attackOptions.setLayout(attackLayout);
+            attackPanel = new JScrollPane(attackList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            attackOptions.add(attackPanel, attackConstraints);
+
+            JButton go = new JButton("Go!");
+            go.addActionListener(EventHandler.goButtonAttacks(this));
+            setConstraints(attackConstraints, 0, 0, 1, 1, 1, 0);
+            attackOptions.add(go, attackConstraints);
+
+            JButton back = new JButton("Back");
+            back.addActionListener(EventHandler.backButtonAttacks(this));
+            setConstraints(attackConstraints, 0, 0, 1, 1, 1, 1);
+            attackOptions.add(back, attackConstraints);
+        }
     }
 
     //Function to set the constants for the gridbaglayout
-    private void setConstraints(final GridBagConstraints gridBagConstraints, final int fill, final double weightx,
+    private void setConstraints(final GridBagConstraints gridBagConstraints, final double weightx,
                                 final double weighty, final int gridwidth, final int gridheight, final int gridx,
                                 final int gridy) {
-        gridBagConstraints.fill = fill;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.weightx = weightx;
         gridBagConstraints.weighty = weighty;
         gridBagConstraints.gridwidth = gridwidth;
@@ -285,4 +348,15 @@ public class Display extends JFrame {
         return this.savedGamePanel;
     }
 
+    public JList<NPC> getTargets() {
+        return this.targets;
+    }
+
+    public JList<String> getAttackList() {
+        return this.attackList;
+    }
+
+    public JPanel getTargetPanel() {
+        return this.targetPanel;
+    }
 }

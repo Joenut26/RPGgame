@@ -17,7 +17,7 @@ public class Warrior extends Player {
         baseHp = 150;
         hitPoints = baseHp + 5 * stamina;
         currentHp = hitPoints;
-        playerIcon = Tools.requestImage("src/main/resources/flipW.jpg");
+        entityIcon = Tools.requestImage("src/main/resources/flipW.jpg");
     }
 
 }

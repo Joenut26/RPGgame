@@ -5,11 +5,14 @@ import Displays.Display;
 import GameMechanics.GameMechanics;
 import GameMechanics.GameObjects;
 import Main.GameState;
+import NPCs.NPC;
+
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.Arrays;
 
-public abstract class EventHandler implements KeyListener, ActionListener {
+public abstract class EventHandler implements KeyListener, ActionListener, ListSelectionListener {
 
     //keylistener when escape is pressed
     public static KeyListener attackOptionsKeyListener(Display display) {
@@ -31,6 +34,43 @@ public abstract class EventHandler implements KeyListener, ActionListener {
             public void keyReleased(KeyEvent e) {
 
             }
+        };
+    }
+
+    //Listener for the targetList
+    public static ListSelectionListener targetListener(GameMechanics gameMechanics, JList jList, Display display) {
+        return selection -> {
+            if (selection.getValueIsAdjusting()) {
+                var selected = jList.getSelectedIndex();
+                //set everything to false to make sure the marker disappears when updating selection
+                gameMechanics.getEnemies().forEach(enemy -> enemy.setTargeted(false));
+                gameMechanics.getEnemies().get(selected).setTargeted(true);
+                gameMechanics.setTarget(gameMechanics.getEnemies().get(selected));
+            }
+
+        };
+    }
+
+    //back button for the option deck
+    public static ActionListener backButton(Display display) {
+        return action -> display.getCurrentOption().show(display.getGameOptions().getParent(), "gameOptions");
+    }
+
+    //go button for the option deck
+    public static ActionListener goButton(Display display) {
+        return action -> display.getCurrentOption().show(display.getAttackOptions().getParent(), "attackOptions");
+    }
+
+    //back button for attacks
+    public static ActionListener backButtonAttacks(Display display) {
+        return action -> display.getCurrentOption().show(display.getTargetPanel().getParent(), "targets");
+    }
+
+    //go button for attacks
+    public static ActionListener goButtonAttacks(Display display) {
+        return action -> {
+            display.getCurrentOption().show(display.getGameOptions().getParent(), "gameOptions");
+            GameObjects.player.setState("running");
         };
     }
 
@@ -112,13 +152,15 @@ public abstract class EventHandler implements KeyListener, ActionListener {
                 //only take action when it's the player's turn
                 if (GameObjects.player.isTurn()) {
                     //attack
-                    display.getCurrentOption().show(display.getAttackOptions().getParent(), "attackOptions");
-                    Display.MESSAGE_BOX.setText("What do you want to use? Press escape to go back");
+                    display.updateDisplay();
+                    display.getCurrentOption().show(display.getTargetPanel().getParent(), "targets");
+
                 } else {
                     Display.MESSAGE_BOX.setText("It's not your turn");
                 }
             } else if (click.getSource() == buttons[1]) {
                 System.out.println("lmao");
+
             } else if (click.getSource() == buttons[2]) {
                 System.out.println("rofl");
             } else if (click.getSource() == buttons[3]) {
