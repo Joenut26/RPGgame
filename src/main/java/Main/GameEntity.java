@@ -26,6 +26,9 @@ public class GameEntity {
     protected Image entityIcon;
     protected String state = "idle";
 
+    protected double positionX;
+    protected double positionY;
+
     public Image getEntityImage() {
         return this.entityImage;
     }
@@ -128,6 +131,22 @@ public class GameEntity {
 
     public void setState(final String state) {
         this.state = state;
+    }
+
+    public double getPositionX() {
+        return positionX;
+    }
+
+    public void setPositionX(double positionX) {
+        this.positionX = positionX;
+    }
+
+    public double getPositionY() {
+        return positionY;
+    }
+
+    public void setPositionY(double positionY) {
+        this.positionY = positionY;
     }
 
 }

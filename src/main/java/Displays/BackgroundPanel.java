@@ -8,8 +8,8 @@ public class BackgroundPanel extends JPanel {
     private Image backgroundImage;
 
     @Override
-    public void paintComponents(Graphics g){
-        super.paintComponents(g);
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
         g.drawImage(backgroundImage,0, 0, this.getWidth(), this.getHeight(), this);    }
 
 

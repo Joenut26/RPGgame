@@ -13,10 +13,11 @@ public class PlayerAnimation implements Animation {
     private final Object attackLock = new Object();
     private final GameScreen gameScreen;
     private final GameMechanics gameMechanics;
-    private int startX;
-    private int startY;
+    private final int startX;
+    private final int startY;
     private int xc;
     private int yc;
+    private final double hitBox;
 
     public PlayerAnimation(GameScreen gameScreen, GameMechanics gameMechanics) {
         this.gameScreen = gameScreen;
@@ -25,6 +26,8 @@ public class PlayerAnimation implements Animation {
         this.startY = gameScreen.getPlayerY();
         this.xc = startX;
         this.yc = startY;
+        this.hitBox = gameScreen.getImageWidth();
+
     }
 
     @Override
@@ -42,23 +45,32 @@ public class PlayerAnimation implements Animation {
                 case "running":
                     animation(GameObjects.WARRIOR_RUNNING, GameObjects.player, gameScreen, 10);
                     break;
+                case "getHit":
+                    animation(GameObjects.WARRIOR_GETHIT, GameObjects.player, gameScreen, 0);
+                    GameObjects.player.setState("idle");
+                    break;
                 case "attack":
                     animation(GameObjects.WARRIOR_ATTACK, GameObjects.player, gameScreen, 0);
-                    break;
+                    //reset states
+                    xc = startX;
+                    GameObjects.player.setState("idle");
+                    GameObjects.player.setActionDone(true);
             }
-            if(gameMechanics.getTarget() != null) {
-                if (xc == gameMechanics.getTarget().getPositionX()) {
+            if (gameMechanics.getTarget() != null) {
+
+                if (xc + hitBox >= gameMechanics.getTarget().getPositionX() && GameObjects.player.isTurn()) {
                     GameObjects.player.setState("attack");
+                    if (gameMechanics.getDamage() == 0) {
+                        gameMechanics.getTarget().setState("block");
+                    } else {
+                        gameMechanics.getTarget().setState("getHit");
+
+                    }
                 }
-            }
 
-            if(GameObjects.player.isActionDone()){
-                xc = startX;
             }
 
 
-
-            // add switch for other states
         }
     }
 
@@ -71,7 +83,7 @@ public class PlayerAnimation implements Animation {
 
             gameScreen.repaint();
             try {
-                Thread.sleep(75);
+                Thread.sleep(100);
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }
@@ -88,5 +100,9 @@ public class PlayerAnimation implements Animation {
 
     public Object getAttackLock() {
         return this.attackLock;
+    }
+
+    public double getHitBox() {
+        return hitBox;
     }
 }

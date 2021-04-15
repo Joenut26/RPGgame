@@ -1,16 +1,17 @@
 package Listeners;
 
+import Abilities.Ability;
 import Displays.Display;
 
 import GameMechanics.GameMechanics;
 import GameMechanics.GameObjects;
 import Main.GameState;
-import NPCs.NPC;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public abstract class EventHandler implements KeyListener, ActionListener, ListSelectionListener {
 
@@ -51,6 +52,17 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
         };
     }
 
+    //listener for the attacks list
+    public static ListSelectionListener attackListener(JList jlist, GameMechanics gameMechanics, Display display){
+        return selection -> {
+            if(selection.getValueIsAdjusting()) {
+                var selected = jlist.getSelectedIndex();
+                var abilityID = display.getClassAbilities().get(selected);
+                gameMechanics.setAbilityChoice(abilityID);
+            }
+        };
+    }
+
     //back button for the option deck
     public static ActionListener backButton(Display display) {
         return action -> display.getCurrentOption().show(display.getGameOptions().getParent(), "gameOptions");
@@ -70,6 +82,9 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
     public static ActionListener goButtonAttacks(Display display) {
         return action -> {
             display.getCurrentOption().show(display.getGameOptions().getParent(), "gameOptions");
+            synchronized (display.getGameMechanics().getPlayerTurn()) {
+               display.getGameMechanics().getPlayerTurn().notify();
+            }
             GameObjects.player.setState("running");
         };
     }
@@ -152,7 +167,8 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
                 //only take action when it's the player's turn
                 if (GameObjects.player.isTurn()) {
                     //attack
-                    display.updateDisplay();
+                    display.updateTargets();
+                    display.updateAttackList();
                     display.getCurrentOption().show(display.getTargetPanel().getParent(), "targets");
 
                 } else {
@@ -160,7 +176,6 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
                 }
             } else if (click.getSource() == buttons[1]) {
                 System.out.println("lmao");
-
             } else if (click.getSource() == buttons[2]) {
                 System.out.println("rofl");
             } else if (click.getSource() == buttons[3]) {
@@ -172,9 +187,7 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
     //Listener for the attackOptions "card" in the Options deck
     public static ActionListener attackOptionsListener(JButton[] buttons, Display display, GameMechanics gameMechanics) {
         return click -> {
-            synchronized (gameMechanics.getPlayerTurn()) {
-                gameMechanics.getPlayerTurn().notify();
-            }
+
             if (click.getSource() == buttons[0]) {
                 //attack 1
                 //execute attack here

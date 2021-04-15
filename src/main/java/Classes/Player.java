@@ -21,8 +21,7 @@ public class Player extends GameEntity {
     protected double experience;
     protected double xpToLevelUp = 100;
     protected boolean turn;
-    protected boolean actionDone;
-
+    protected boolean actionDone = false;
 
 
     public Player() {
@@ -31,7 +30,7 @@ public class Player extends GameEntity {
 
     // Get & set fields
 
-       public void setBaseHp(final double baseHp) {
+    public void setBaseHp(final double baseHp) {
         this.baseHp = baseHp;
     }
 
@@ -88,13 +87,21 @@ public class Player extends GameEntity {
         return this.currentResource;
     }
 
-    public void setSpecialResourceName(final String specialResourceName){ this.specialResourceName = specialResourceName;}
+    public void setSpecialResourceName(final String specialResourceName) {
+        this.specialResourceName = specialResourceName;
+    }
 
-    public String getSpecialResourceName(){ return this.specialResourceName;}
+    public String getSpecialResourceName() {
+        return this.specialResourceName;
+    }
 
-    public void setCurrentSpecialResource(final double currentSpecialResource){ this.currentSpecialResource = currentSpecialResource;}
+    public void setCurrentSpecialResource(final double currentSpecialResource) {
+        this.currentSpecialResource = currentSpecialResource;
+    }
 
-    public double getCurrentSpecialResource(){return this.currentSpecialResource;}
+    public double getCurrentSpecialResource() {
+        return this.currentSpecialResource;
+    }
 
     public double getSpecialResource() {
         return this.specialResource;

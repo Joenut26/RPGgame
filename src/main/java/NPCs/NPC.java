@@ -1,5 +1,6 @@
 package NPCs;
 
+import Animations.EnemyAnimation;
 import Main.GameEntity;
 
 import java.awt.*;
@@ -11,9 +12,9 @@ public class NPC extends GameEntity {
     protected double xpOnKill;
     protected boolean turn;
     protected int baseHp;
-    protected double positionX;
-    protected double PositionY;
     protected boolean targeted;
+    protected boolean actionDone = false;
+    protected EnemyAnimation animation;
 
 
     public NPC() {
@@ -21,6 +22,21 @@ public class NPC extends GameEntity {
     }
     // Get & set fields
 
+    public boolean isActionDone() {
+        return actionDone;
+    }
+
+    public void setActionDone(boolean actionDone) {
+        this.actionDone = actionDone;
+    }
+
+    public EnemyAnimation getAnimation() {
+        return animation;
+    }
+
+    public void setAnimation(EnemyAnimation animation) {
+        this.animation = animation;
+    }
 
     public void setTargeted(final boolean targeted) {
         this.targeted = targeted;
@@ -28,22 +44,6 @@ public class NPC extends GameEntity {
 
     public boolean isTargeted() {
         return this.targeted;
-    }
-
-    public double getPositionY() {
-        return this.PositionY;
-    }
-
-    public void setPositionY(final double positionY) {
-        this.PositionY = positionY;
-    }
-
-    public double getPositionX() {
-        return this.positionX;
-    }
-
-    public void setPositionX(final double positionX) {
-        this.positionX = positionX;
     }
 
     public int getBaseHp() {

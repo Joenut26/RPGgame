@@ -5,6 +5,8 @@ import Menus.MenuService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.OutputStream;
+import java.io.Serializable;
 
 public class MainGame {
 
@@ -12,6 +14,7 @@ public class MainGame {
     public static boolean done = false;
 
     //TODO make sure all threads are synchronized
+    //TODO for save/load look into java.io.Serializable
 
     public MainGame(){
         initGame();
@@ -29,7 +32,9 @@ public class MainGame {
 
         EventQueue.invokeLater(() ->{
             final MainGame mainGame = new MainGame();
+
         });
+
     }
 
 

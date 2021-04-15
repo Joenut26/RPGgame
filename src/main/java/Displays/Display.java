@@ -9,8 +9,9 @@ import NPCs.NPC;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
-public class Display extends JFrame {
+public class Display extends JFrame{
 
     //add game Thread for the event handlers
     private final GameMechanics gameMechanics;
@@ -40,6 +41,7 @@ public class Display extends JFrame {
     private JList<NPC> targets;
     private JList<String> attackList;
     private JScrollPane attackPanel;
+    private ArrayList<String> classAbilities;
     private final JPanel targetPanel = new JPanel();
     private final GameScreen canvas;
 
@@ -48,7 +50,9 @@ public class Display extends JFrame {
     //Define textarea to display messages
     public static final JTextArea MESSAGE_BOX = new JTextArea();
 
-    private boolean created = false;
+
+    private boolean targetsCreated = false;
+    private boolean attacksCreated = false;
 
     public Display(GameMechanics gameMechanics){
         this.gameMechanics = gameMechanics;
@@ -56,18 +60,23 @@ public class Display extends JFrame {
         mainMenu();
         createCharacter();
         mainPanel();
-        attackOptions();
         initDisplay();
         //make sure these are the first to show
         currentPanel.show(mainMenu.getParent(), "mainMenu");
         currentOption.show(gameOptions.getParent(), "gameOptions");
     }
 
-    public void updateDisplay(){
+    public void updateTargets(){
 
-        //make calls to update gameMechanics fields
+        //make calls to update targets
         targetSelection();
-        created = true;
+        targetsCreated = true;
+
+    }
+
+    public void updateAttackList(){
+        attackOptions();
+        attacksCreated = true;
     }
 
     private void initDisplay(){
@@ -132,7 +141,6 @@ public class Display extends JFrame {
 
         //add a textbox for messages
         MESSAGE_BOX.setEditable(false);
-        MESSAGE_BOX.setText("You are on floor ");
         setConstraints(mainPanelConstraints, 1, 0.05, 0, 1, 0, 1);
         mainPanel.add(MESSAGE_BOX, mainPanelConstraints);
 
@@ -223,7 +231,7 @@ public class Display extends JFrame {
         //display a list of enemies to attack
         targets = new JList(gameMechanics.getEnemies().toArray());
         //set up needs to be done only once
-        if(!created) {
+        if(!targetsCreated) {
             targets.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             targets.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             targets.setLayoutOrientation(JList.VERTICAL);
@@ -248,14 +256,29 @@ public class Display extends JFrame {
         targets.addListSelectionListener(EventHandler.targetListener(gameMechanics,targets,this));
     }
 
-    private void attackOptions() {
+    private void setAttackList(){
+        //determine which list to use from menuservice
+        switch (GameObjects.player.getPlayerClass()){
+            case "Warrior": classAbilities = MenuService.warriorAttacks;
+            break;
+            case "Wizard": classAbilities = MenuService.wizardAttacks;
+            break;
+            case "Rogue": classAbilities = MenuService.rogueAttacks;
+            break;
+            case "Cleric": classAbilities = MenuService.clericAttacks;
+            break;        }
 
-        attackList = new JList<>(MenuService.warriorAttacks.toArray(new String[0]));
-        if(!created){
+    }
+
+    private void attackOptions() {
+        setAttackList();
+        attackList = new JList<>(classAbilities.toArray(new String[0]));
+        if(!attacksCreated){
             attackList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             attackList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             attackList.setVisibleRowCount(2);
             attackList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+            //draw border around cells
             attackList.setCellRenderer(new DefaultListCellRenderer(){
                 @Override
                 public Component getListCellRendererComponent(JList<?> list,
@@ -285,6 +308,9 @@ public class Display extends JFrame {
             setConstraints(attackConstraints, 0, 0, 1, 1, 1, 1);
             attackOptions.add(back, attackConstraints);
         }
+
+        attackList.addListSelectionListener(EventHandler.attackListener(attackList,gameMechanics,this));
+
     }
 
     //Function to set the constants for the gridbaglayout
@@ -298,6 +324,10 @@ public class Display extends JFrame {
         gridBagConstraints.gridheight = gridheight;
         gridBagConstraints.gridx = gridx;
         gridBagConstraints.gridy = gridy;
+    }
+
+    public ArrayList<String> getClassAbilities() {
+        return this.classAbilities;
     }
 
     public JPanel getOptionDeck() {
@@ -359,4 +389,6 @@ public class Display extends JFrame {
     public JPanel getTargetPanel() {
         return this.targetPanel;
     }
+
+
 }

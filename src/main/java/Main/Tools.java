@@ -5,6 +5,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 public class Tools {
@@ -29,6 +30,18 @@ public class Tools {
             Image image = requestImage(imagePath);
             imageArrayList.add(image);
         }
+        return imageArrayList;
+    }
+
+    public static ArrayList<Image> addImageToListReverse(String pathName){
+        File directory = new File(pathName);
+        ArrayList<Image> imageArrayList = new ArrayList<>();
+        for(String element: Objects.requireNonNull(directory.list())){
+            String imagePath = pathName.concat("/" + element);
+            Image image = requestImage(imagePath);
+            imageArrayList.add(image);
+        }
+        Collections.reverse(imageArrayList);
         return imageArrayList;
     }
 }

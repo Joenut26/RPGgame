@@ -9,6 +9,10 @@ public class MenuService {
     public final static ArrayList<String> classesList = new ArrayList<>();
     public final static ArrayList<String> gameOptionsList = new ArrayList<>();
     public final static ArrayList<String> warriorAttacks = new ArrayList<>();
+    public final static ArrayList<String> wizardAttacks = new ArrayList<>();
+    public final static ArrayList<String> rogueAttacks = new ArrayList<>();
+    public final static ArrayList<String> clericAttacks = new ArrayList<>();
+
 
     public static void menuInitializer() {
         setMainMenuOptionsList();
@@ -16,6 +20,9 @@ public class MenuService {
         setClassesList();
         setGameOptionsList();
         setWarriorAttacks();
+        setWizardAttacks();
+        setRogueAttacks();
+        setClericAttacks();
     }
 
     private static void setGameOptionsList() {
@@ -45,14 +52,35 @@ public class MenuService {
     }
 
     private static void setWarriorAttacks(){
-        warriorAttacks.add("Auto attack");
+        warriorAttacks.add("Auto Attack");
         warriorAttacks.add("Reckless Strike");
         warriorAttacks.add("Dragon Swing");
         warriorAttacks.add("Devastating Blow");
-//        warriorAttacks.add("Auto attack");
-//        warriorAttacks.add("Reckless Strike");
-//        warriorAttacks.add("Dragon Swing");
-//        warriorAttacks.add("Devastating Blow");
+
+    }
+
+    private static void setWizardAttacks(){
+        wizardAttacks.add("Auto attack");
+        wizardAttacks.add("Fireball");
+        wizardAttacks.add("Ice Nova");
+        wizardAttacks.add("Wind Shear");
+
+    }
+
+    private static void setRogueAttacks(){
+        rogueAttacks.add("Auto attack");
+        rogueAttacks.add("Backstab");
+        rogueAttacks.add("Ambush");
+        rogueAttacks.add("Eviscerate");
+
+    }
+
+    private static void setClericAttacks(){
+        clericAttacks.add("Auto attack");
+        clericAttacks.add("Healing Surge");
+        clericAttacks.add("Storm Blow");
+        clericAttacks.add("Lightning Spear");
+
     }
 }
 

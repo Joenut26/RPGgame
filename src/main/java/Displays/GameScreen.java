@@ -119,7 +119,9 @@ public class GameScreen extends JPanel implements Runnable {
             EnemyAnimation enemyAnimation = new EnemyAnimation(this, enemy, gameMechanics);
             Thread enemyAnimationThread = new Thread(enemyAnimation);
             enemyAnimationThread.start();
+            enemy.setAnimation(enemyAnimation);
             enemyAnimations.add(enemyAnimation);
+
 
         }
 
@@ -128,12 +130,13 @@ public class GameScreen extends JPanel implements Runnable {
     }
 
     private void update() {
-        //TODO animations now have their own sleeptimer -> make only one timer for all updates
+
         //do positions for animations here
         imageWidth = (int) (xScale * getWidth());
         imageHeight = (int) (yScale * getHeight());
 
         playerX = playerAnimation.getXc();
+        gameMechanics.getEnemies().forEach(enemy -> enemy.setPositionX(enemy.getAnimation().getXc()));
 
         //update states for different animations
 
@@ -232,4 +235,7 @@ public class GameScreen extends JPanel implements Runnable {
         return animator;
     }
 
+    public int getImageWidth() {
+        return imageWidth;
+    }
 }
