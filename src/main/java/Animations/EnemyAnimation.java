@@ -50,6 +50,9 @@ public class EnemyAnimation implements Animation {
                         animation(GameObjects.GOBLIN_ATTACK, npc, gameScreen, 0);
                         xc = startX;
                         npc.setState("idle");
+                        synchronized (gameMechanics.getMonsterTurn()){
+                            gameMechanics.getMonsterTurn().notifyAll();
+                        }
                         break;
                     case "getHit":
                         break;
@@ -75,6 +78,9 @@ public class EnemyAnimation implements Animation {
                         xc = startX;
                         npc.setActionDone(true);
                         npc.setState("idle");
+                        synchronized (gameMechanics.getMonsterTurn()){
+                            gameMechanics.getMonsterTurn().notifyAll();
+                        }
                         break;
                     case "block":
                         animation(GameObjects.SKELETON_SHIELD, npc, gameScreen, 0);
@@ -86,7 +92,6 @@ public class EnemyAnimation implements Animation {
                     case "death":
                         animation(GameObjects.SKELETON_DEATH, npc, gameScreen, 0);
                         break;
-
                 }
             }
 

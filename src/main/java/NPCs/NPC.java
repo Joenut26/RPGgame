@@ -6,11 +6,9 @@ import Main.GameEntity;
 import java.awt.*;
 
 public class NPC extends GameEntity {
-    protected String id = "NPC";
     protected double currentMana;
     protected double mana;
     protected double xpOnKill;
-    protected boolean turn;
     protected int baseHp;
     protected boolean targeted;
     protected boolean actionDone = false;
@@ -18,7 +16,7 @@ public class NPC extends GameEntity {
 
 
     public NPC() {
-
+        id = "NPC";
     }
     // Get & set fields
 
@@ -52,22 +50,6 @@ public class NPC extends GameEntity {
 
     public void setBaseHp(final int baseHp){
         this.baseHp = baseHp;
-    }
-
-    public boolean isTurn() {
-        return turn;
-    }
-
-    public void setTurn(final boolean turn) {
-        this.turn = turn;
-    }
-
-    public String getId() {
-        return this.id;
-    }
-
-    public void setId(final String id) {
-        this.id = id;
     }
 
     public double getMana() {

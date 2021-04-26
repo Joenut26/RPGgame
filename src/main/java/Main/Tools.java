@@ -44,5 +44,14 @@ public class Tools {
         Collections.reverse(imageArrayList);
         return imageArrayList;
     }
+
+    public static void synchronize(final Object lock){
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+    }
 }
 

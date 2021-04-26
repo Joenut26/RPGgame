@@ -54,7 +54,9 @@ public class PlayerAnimation implements Animation {
                     //reset states
                     xc = startX;
                     GameObjects.player.setState("idle");
-                    GameObjects.player.setActionDone(true);
+                    synchronized (gameMechanics.getPlayerTurn()){
+                        gameMechanics.getPlayerTurn().notifyAll();
+                    }
             }
             if (gameMechanics.getTarget() != null) {
 
@@ -67,10 +69,7 @@ public class PlayerAnimation implements Animation {
 
                     }
                 }
-
             }
-
-
         }
     }
 

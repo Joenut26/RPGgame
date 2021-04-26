@@ -1,11 +1,14 @@
 package GameMechanics;
 
 import Abilities.Ability;
+import Classes.Player;
 import Displays.Display;
+import Main.GameEntity;
+import Main.Tools;
+import Main.TurnController;
 import NPCs.Goblin;
 import NPCs.NPC;
 import NPCs.Skeleton;
-import NPCs.Troll;
 
 import java.util.*;
 
@@ -15,7 +18,7 @@ public class GameMechanics implements Runnable {
     private int currentFloor;
     private boolean newFloor = true;
     private final ArrayList<NPC> enemies = new ArrayList<>();
-    private final HashMap<Integer, NPC> initiativeMap = new HashMap<>();
+    private final HashMap<Integer, GameEntity> initiativeMap = new HashMap<>();
     private final Random random = new Random();
     //array of integers which collects the number of each monstertype ( 0 = goblin, 1 = troll etc)
     private int[] numberOfUniqueEnemies;
@@ -37,6 +40,8 @@ public class GameMechanics implements Runnable {
     private double damage;
     private double monsterDamage;
     private String abilityChoice;
+    private int currentTurn;
+    private final TurnController turnController = new TurnController(this);
 
 
     public GameMechanics() {
@@ -56,13 +61,9 @@ public class GameMechanics implements Runnable {
             //gameloop here, will run in the background
             if (!gameStarted) {
                 synchronized (lock) {
-                    try {
-                        //wait until the game is started
-                        lock.wait();
-                        gameStarted = true;
-                    } catch (InterruptedException interruptedException) {
-                        interruptedException.printStackTrace();
-                    }
+                    //wait until the game is started
+                    Tools.synchronize(lock);
+                    gameStarted = true;
                 }
             }
             //Spawn enemies and set initiatives for every new floor
@@ -78,7 +79,10 @@ public class GameMechanics implements Runnable {
 
             }
             //If the hp of every enemy is 0, combat is over
-            boolean combatDone = initiativeMap.entrySet().stream().allMatch(entry -> entry.getValue().getCurrentHp() <= 0);
+            boolean combatDone = initiativeMap.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue() instanceof NPC)
+                    .allMatch(entry -> entry.getValue().getCurrentHp() <= 0);
 
             if (!combatDone) {
                 combat();
@@ -162,8 +166,7 @@ public class GameMechanics implements Runnable {
         } else {
             monsterDamage = damage;
         }
-        // update player hp
-        GameObjects.player.setCurrentHp(GameObjects.player.getCurrentHp() - damage);
+
     }
 
 
@@ -193,51 +196,53 @@ public class GameMechanics implements Runnable {
 
     private void combat() {
 
-        for (final Map.Entry<Integer, NPC> entry : initiativeMap.entrySet()) {
-            if (entry.getValue().getName().equals("Player")) {
-                synchronized (playerTurn) {
-                    Display.MESSAGE_BOX.setText("Your turn");
-                    GameObjects.player.setTurn(true);
-                    GameObjects.player.setActionDone(false);
-                    // playermove
-                    try {
-                        //wait for user input
-                        playerTurn.wait();
-                    } catch (InterruptedException interruptedException) {
-                        System.out.println(interruptedException.getMessage());
-                        interruptedException.printStackTrace();
-                    }
-                    try {
-                        playerAttack(getAbilityChoice());
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
-                    }
-                    //determine hit
-                    determineHit();
-                    //update animations
-                    GameObjects.player.setState("running");
-
-                    if(GameObjects.player.isActionDone()){
-                        GameObjects.player.setTurn(false);
-                    }
+        System.out.println(currentTurn);
+        GameEntity hasTurn = initiativeMap.get(currentTurn);
+        if (hasTurn instanceof Player) {
+            GameObjects.player.setTurn(true);
+            synchronized (playerTurn) {
+                Display.MESSAGE_BOX.setText("Your turn");
+                // playermove
+                Tools.synchronize(playerTurn);
+                try {
+                    playerAttack(getAbilityChoice());
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
-                // do monstermove if their hp is > 0
-            } else if (entry.getValue().getCurrentHp() > 0) {
-                    //TODO NEED DELAY HERE
-                    Display.MESSAGE_BOX.setText(entry.getValue().getName() + " " + entry.getKey() + "'s turn");
-                    // monstermove
-                    entry.getValue().setTurn(true);
-                    entry.getValue().setActionDone(false);
-                    monsterAttack(entry.getValue());
-                    entry.getValue().setState("walk");
-                    System.out.println("kekw");
-                    if(entry.getValue().isActionDone()){
-                        entry.getValue().setTurn(false);
-                    }
+                //determine hit;
+                determineHit();
+                //wait for animations to finish
+                Tools.synchronize(playerTurn);
+            }
+        } else if (hasTurn instanceof NPC) {
+            //TODO NEED DELAY HERE
+            Display.MESSAGE_BOX.setText(hasTurn.getName() + " " + currentTurn + "'s turn");
+            // monstermove
+            monsterAttack((NPC) hasTurn);
+            hasTurn.setState("walk");
+            System.out.println("kekw");
 
+            //wait for animations to finish
+            synchronized (monsterTurn) {
+                Tools.synchronize(monsterTurn);
             }
         }
+
+        //update player/monster hp
+            if(initiativeMap.get(currentTurn) instanceof Player){
+                //handle updates to the target's hp
+                target.setCurrentHp(target.getCurrentHp() - damage);
+            } else {
+                //when it's not the player's turn the player health needs to be updated
+                GameObjects.player.setCurrentHp(GameObjects.player.getCurrentHp() - monsterDamage);
+            }
+
+        //update turn
+        turnController.updateTurn();
+
     }
+
+
 
     private void rollInitiative() {
         //set player initiative
@@ -247,7 +252,7 @@ public class GameMechanics implements Runnable {
         //add the player initiative to the list to sort them
         NPC playerNPC = new NPC();
         playerNPC.setInitiative(GameObjects.player.getInitiative());
-        playerNPC.setCurrentHp(0);
+        playerNPC.setId("Player");
         playerNPC.setName("Player");
         playerNPC.setEntityIcon(GameObjects.player.getEntityIcon());
         enemies.add(playerNPC);
@@ -255,8 +260,16 @@ public class GameMechanics implements Runnable {
         enemies.sort((npc1, npc2) -> Double.compare(npc2.getInitiative(), npc1.getInitiative()));
         //put it in a map to keep track of order
         for (int i = 0; i < enemies.size(); i++) {
-            initiativeMap.put(i, enemies.get(i));
+            if (enemies.get(i).getId().equals("Player")) {
+                initiativeMap.put(i, GameObjects.player);
+            } else {
+                initiativeMap.put(i, enemies.get(i));
+            }
+            System.out.println(enemies.get(i));
         }
+        //set the first entry's animationDone to true so the combat can start
+        initiativeMap.get(0).setTurn(true);
+        setCurrentTurn(0);
         //remove player now
         enemies.remove(playerNPC);
     }
@@ -312,6 +325,10 @@ public class GameMechanics implements Runnable {
                 }
             }
         }
+    }
+
+    public TurnController getTurnController() {
+        return turnController;
     }
 
     public void setGameOver(boolean gameOver) {
@@ -384,5 +401,17 @@ public class GameMechanics implements Runnable {
 
     public Object getMonsterTurn() {
         return monsterTurn;
+    }
+
+    public HashMap<Integer, GameEntity> getInitiativeMap() {
+        return initiativeMap;
+    }
+
+    public int getCurrentTurn() {
+        return currentTurn;
+    }
+
+    public void setCurrentTurn(int currentTurn) {
+        this.currentTurn = currentTurn;
     }
 }

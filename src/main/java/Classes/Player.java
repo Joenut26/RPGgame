@@ -20,12 +20,11 @@ public class Player extends GameEntity {
     protected double currentSpecialResource;
     protected double experience;
     protected double xpToLevelUp = 100;
-    protected boolean turn;
     protected boolean actionDone = false;
 
 
     public Player() {
-
+        id = "Player";
     }
 
     // Get & set fields
@@ -44,14 +43,6 @@ public class Player extends GameEntity {
 
     public void setActionDone(final boolean actionDone) {
         this.actionDone = actionDone;
-    }
-
-    public boolean isTurn() {
-        return turn;
-    }
-
-    public void setTurn(final boolean turn) {
-        this.turn = turn;
     }
 
     public String getPlayerClass() {

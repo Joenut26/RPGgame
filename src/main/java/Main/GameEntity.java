@@ -6,6 +6,8 @@ public class GameEntity {
     protected String name;
     protected int level;
 
+    protected String id;
+
     public void setHitPoints(double hitPoints) {
         this.hitPoints = hitPoints;
     }
@@ -26,8 +28,25 @@ public class GameEntity {
     protected Image entityIcon;
     protected String state = "idle";
 
+    protected boolean turn;
     protected double positionX;
     protected double positionY;
+
+    public boolean isTurn() {
+        return turn;
+    }
+
+    public void setTurn(boolean turn) {
+        this.turn = turn;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Image getEntityImage() {
         return this.entityImage;
