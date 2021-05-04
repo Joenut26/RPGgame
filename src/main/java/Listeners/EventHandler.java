@@ -1,6 +1,5 @@
 package Listeners;
 
-import Abilities.Ability;
 import Displays.Display;
 
 import GameMechanics.GameMechanics;
@@ -11,7 +10,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+
 
 public abstract class EventHandler implements KeyListener, ActionListener, ListSelectionListener {
 
@@ -94,13 +93,13 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
         return click -> {
             if (click.getSource() == buttons[0]) {
                 //new game -> go to character creation
-                GameState.currentState = GameState.State.CHARACTER_STATE;
+                display.getGameState().setCurrentState(GameState.State.CHARACTER_STATE);
             } else if (click.getSource() == buttons[1]) {
                 //load game -> go to saved games
-                GameState.currentState = GameState.State.SAVED_STATE;
+                display.getGameState().setCurrentState(GameState.State.SAVED_STATE);
             } else if (click.getSource() == buttons[2]) {
                 //options
-                GameState.currentState = GameState.State.OPTIONS_STATE;
+                display.getGameState().setCurrentState(GameState.State.OPTIONS_STATE);
             } else if (click.getSource() == buttons[3]) {
                 //make popup Are you sure you want to quit
                 final int choice = JOptionPane.showConfirmDialog(display, "Are you sure you want to quit?");
@@ -109,7 +108,7 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
                     System.exit(0);
                 }
             }
-            GameState.gameStateUpdate(display);
+            display.getGameState().gameStateUpdate();
         };
     }
 
@@ -146,7 +145,7 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
                         gameMechanics.getLock().notifyAll();
                     }
                     //switch to ingame state
-                    GameState.currentState = GameState.State.INGAME_STATE;
+                    display.getGameState().setCurrentState(GameState.State.INGAME_STATE);
 
                 } else if (textField.getText().isEmpty()) {
                     //message when the player hasn't entered a name
@@ -156,7 +155,8 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
                     JOptionPane.showMessageDialog(display.getCharacterPanel(), "Please choose a class");
                 }
             }
-            GameState.gameStateUpdate(display);
+            display.getGameState().gameStateUpdate();
+
         };
     }
 
@@ -184,24 +184,12 @@ public abstract class EventHandler implements KeyListener, ActionListener, ListS
         };
     }
 
-    //Listener for the attackOptions "card" in the Options deck
-    public static ActionListener attackOptionsListener(JButton[] buttons, Display display, GameMechanics gameMechanics) {
+    public static ActionListener gameOverListener(JButton button, Display display, GameMechanics gameMechanics){
         return click -> {
-
-            if (click.getSource() == buttons[0]) {
-                //attack 1
-                //execute attack here
-                GameObjects.player.setActionDone(true);
-                GameObjects.player.setTurn(false);
-            } else if (click.getSource() == buttons[1]) {
-                System.out.println("attack2");
-            } else if (click.getSource() == buttons[2]) {
-                System.out.println("attack3");
-            } else if (click.getSource() == buttons[3]) {
-                System.out.println("attack4");
+            if(click.getSource() == button){
+                display.getGameState().setCurrentState(GameState.State.MENU_STATE);
+                display.getGameState().gameStateUpdate();
             }
-            //switch back to the main options
-            display.getCurrentOption().previous(display.getOptionDeck());
         };
     }
 
