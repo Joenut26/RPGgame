@@ -1,6 +1,5 @@
 package Displays;
 
-import Animations.Animation;
 import Animations.EnemyAnimation;
 import Animations.PlayerAnimation;
 import GameMechanics.GameMechanics;
@@ -30,6 +29,9 @@ public class GameScreen extends JPanel implements Runnable {
     private PlayerAnimation playerAnimation;
     private final ArrayList<EnemyAnimation> enemyAnimations = new ArrayList<>();
 
+    private boolean enemyHit;
+    private boolean playerHit;
+
     public GameScreen(final GameMechanics gameMechanics) {
         this.gameMechanics = gameMechanics;
         initGameScreen();
@@ -40,7 +42,7 @@ public class GameScreen extends JPanel implements Runnable {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
 
         playerX = (int) (xScale * WIDTH);
-        playerY = (int) (3 * yScale * HEIGHT);
+        playerY = (int) (2.9 * yScale * HEIGHT);
 
         setBackGround(Tools.requestImage("src/main/resources/Background.png"));
     }
@@ -61,9 +63,10 @@ public class GameScreen extends JPanel implements Runnable {
         g.drawImage(getBackGround(), 0, 0, getWidth(), getHeight(), null);
         g.drawImage(GameObjects.player.getEntityImage(), playerX, playerY, imageWidth, imageHeight, null);
         for (NPC enemy : gameMechanics.getEnemies()) {
-            g.drawImage(enemy.getEntityImage(), (int) enemy.getPositionX(), (int) enemy.getPositionY(), (int) (imageWidth * 1.5), imageHeight *2, null);
+
+            g.drawImage(enemy.getEntityImage(), (int) enemy.getPositionX(), (int) enemy.getPositionY(), (int) (imageWidth * 1.5), imageHeight * 2, null);
             // draw a triangle above the targets head if targeted
-            if (enemy.isTargeted()) {
+            if (enemy.isTargeted() && !enemy.isDead()) {
                 int[] polyX = {(int) (enemy.getPositionX() + 0.25 * imageWidth), (int) (enemy.getPositionX() + 0.5 * imageWidth), (int) (enemy.getPositionX() + 0.75 * imageWidth)};
                 int[] polyY = {(int) (enemy.getPositionY() - 15), (int) (enemy.getPositionY() - 5), (int) (enemy.getPositionY() - 15)};
                 Color prevCol = g.getColor();
@@ -71,6 +74,7 @@ public class GameScreen extends JPanel implements Runnable {
                 g.fillPolygon(polyX, polyY, 3);
                 g.setColor(prevCol);
             }
+
         }
 
         //healthbar/resourcebar/name/icon in top left corner
@@ -108,7 +112,17 @@ public class GameScreen extends JPanel implements Runnable {
         g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
         g.drawRect((int) (xScale * getWidth()), (int) (xScale * getWidth() * 2 / 3), (int) (2 * xScale * getWidth()), (int) (xScale * getWidth() / 3));
         //current target top right
+
+        //flash the damage of the hit
+        g.setColor(Color.RED);
+        if (enemyHit) {
+            g.drawString((int) gameMechanics.getDamage() + "", (int) gameMechanics.getTarget().getPositionX(), (int) gameMechanics.getTarget().getPositionY());
+        } else if (playerHit) {
+            g.drawString((int) gameMechanics.getMonsterDamage() + "", playerX + imageWidth / 2, playerY);
+        }
+        g.setColor(Color.BLACK);
         Toolkit.getDefaultToolkit().sync();
+
     }
 
     //provide starting coordinates for enemies
@@ -121,23 +135,35 @@ public class GameScreen extends JPanel implements Runnable {
             enemyAnimationThread.start();
             enemy.setAnimation(enemyAnimation);
             enemyAnimations.add(enemyAnimation);
-
-
         }
 
-        animatePlayer();
+
 
     }
 
     private void update() {
 
+        if(gameMechanics.isNewAnimation()) {
+            initialState();
+            repaint();
+            gameMechanics.setNewAnimation(false);
+        }
         //do positions for animations here
         imageWidth = (int) (xScale * getWidth());
         imageHeight = (int) (yScale * getHeight());
 
         playerX = playerAnimation.getXc();
-        gameMechanics.getEnemies().forEach(enemy -> enemy.setPositionX(enemy.getAnimation().getXc()));
+        //only update if there are enemies
+        if(gameMechanics.getEnemies().size() > 0) {
+            gameMechanics.getEnemies().forEach(enemy -> enemy.setPositionX(enemy.getAnimation().getXc()));
+        }
 
+
+        playerHit = GameObjects.player.getState().equals("getHit");
+        //run this part only when a target is selected
+        if (gameMechanics.getTarget() != null) {
+            enemyHit = gameMechanics.getTarget().getState().equals("getHit");
+        }
         //update states for different animations
 
     }
@@ -162,13 +188,11 @@ public class GameScreen extends JPanel implements Runnable {
         synchronized (gameMechanics.getGameScreenLock()) {
             try {
                 gameMechanics.getGameScreenLock().wait();
-                initialState();
-                repaint();
+                animatePlayer();
+
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }
-
-
         }
 
         //loop
@@ -179,7 +203,6 @@ public class GameScreen extends JPanel implements Runnable {
 
             timeDiff = System.currentTimeMillis() - oldTime;
             sleep = DELAY - timeDiff;
-
 
 
             if (sleep < 0) {
@@ -237,5 +260,13 @@ public class GameScreen extends JPanel implements Runnable {
 
     public int getImageWidth() {
         return imageWidth;
+    }
+
+    public void setEnemyHit(boolean enemyHit) {
+        this.enemyHit = enemyHit;
+    }
+
+    public void setPlayerHit(boolean playerHit) {
+        this.playerHit = playerHit;
     }
 }

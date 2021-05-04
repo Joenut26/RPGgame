@@ -11,7 +11,6 @@ public class NPC extends GameEntity {
     protected double xpOnKill;
     protected int baseHp;
     protected boolean targeted;
-    protected boolean actionDone = false;
     protected EnemyAnimation animation;
 
 
@@ -20,13 +19,6 @@ public class NPC extends GameEntity {
     }
     // Get & set fields
 
-    public boolean isActionDone() {
-        return actionDone;
-    }
-
-    public void setActionDone(boolean actionDone) {
-        this.actionDone = actionDone;
-    }
 
     public EnemyAnimation getAnimation() {
         return animation;

@@ -2,8 +2,6 @@ package Main;
 
 import GameMechanics.*;
 
-import java.util.HashMap;
-
 public class TurnController {
 
     private final GameMechanics gameMechanics;
@@ -14,19 +12,24 @@ public class TurnController {
     }
 
     public void updateTurn(){
-        if(gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).getId().equals("Player")){
-            GameObjects.player.setTurn(false);
-        }
+
         gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).setTurn(false);
+        //up the currentTurn unless it's the last turn. In that case reset it to 0
         if(gameMechanics.getCurrentTurn() < gameMechanics.getInitiativeMap().size() - 1) {
             gameMechanics.setCurrentTurn(gameMechanics.getCurrentTurn() + 1);
         } else {
             gameMechanics.setCurrentTurn(0);
         }
+        //now enable turn of the next entity
         gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).setTurn(true);
-        if(gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).getId().equals("Player")){
-            GameObjects.player.setTurn(true);
+        //reset actionDone
+        gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).setActionDone(false);
+
+        //if the current enemy is dead skip to the next
+        if(gameMechanics.getInitiativeMap().get(gameMechanics.getCurrentTurn()).currentHp <=0){
+            updateTurn();
         }
+
     }
 
 

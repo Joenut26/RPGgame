@@ -1,12 +1,8 @@
 import Displays.Display;
 import GameMechanics.*;
-import Main.GameState;
 import Menus.MenuService;
 
-import javax.swing.*;
 import java.awt.*;
-import java.io.OutputStream;
-import java.io.Serializable;
 
 public class MainGame {
 
@@ -20,7 +16,7 @@ public class MainGame {
         initGame();
         GameMechanics gameMechanics = new GameMechanics();
         display = new Display(gameMechanics);
-
+        gameMechanics.setGameState(display.getGameState());
     }
 
     private void initGame(){

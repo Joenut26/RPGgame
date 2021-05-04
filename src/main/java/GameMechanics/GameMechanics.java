@@ -4,6 +4,7 @@ import Abilities.Ability;
 import Classes.Player;
 import Displays.Display;
 import Main.GameEntity;
+import Main.GameState;
 import Main.Tools;
 import Main.TurnController;
 import NPCs.Goblin;
@@ -43,6 +44,10 @@ public class GameMechanics implements Runnable {
     private int currentTurn;
     private final TurnController turnController = new TurnController(this);
 
+    private GameState gameState;
+
+    private boolean newAnimation;
+
 
     public GameMechanics() {
         //set the floor
@@ -51,6 +56,10 @@ public class GameMechanics implements Runnable {
         gameMechanicsThread = new Thread(this);
         gameMechanicsThread.start();
 
+    }
+
+    public void setGameState(GameState gameState){
+        this.gameState = gameState;
     }
 
     //called when a new GameMechanics is instantiated by thread.start()
@@ -69,15 +78,20 @@ public class GameMechanics implements Runnable {
             //Spawn enemies and set initiatives for every new floor
             //synchronize with the gameScreen and notify it when enemies are spawned so the initial
             //positions of the enemies are correct
-            synchronized (gameScreenLock) {
+           // synchronized (gameScreenLock) {
                 if (newFloor) {
                     spawnEnemies();
                     rollInitiative();
                     newFloor = !newFloor;
+                    synchronized (gameScreenLock) {
+                        gameScreenLock.notifyAll();
+                        newAnimation = true;
+                    }
                 }
-                gameScreenLock.notifyAll();
 
-            }
+                //gameScreenLock.notifyAll();
+
+            //}
             //If the hp of every enemy is 0, combat is over
             boolean combatDone = initiativeMap.entrySet()
                     .stream()
@@ -90,7 +104,7 @@ public class GameMechanics implements Runnable {
             } else {
                 //loot
                 //go to new Floor
-                this.currentFloor = +1;
+                this.currentFloor += 1;
                 GameObjects.FLOORS.add(new Floor(this.getCurrentFloor()));
                 newFloor = !newFloor;
             }
@@ -196,10 +210,8 @@ public class GameMechanics implements Runnable {
 
     private void combat() {
 
-        System.out.println(currentTurn);
         GameEntity hasTurn = initiativeMap.get(currentTurn);
         if (hasTurn instanceof Player) {
-            GameObjects.player.setTurn(true);
             synchronized (playerTurn) {
                 Display.MESSAGE_BOX.setText("Your turn");
                 // playermove
@@ -215,12 +227,11 @@ public class GameMechanics implements Runnable {
                 Tools.synchronize(playerTurn);
             }
         } else if (hasTurn instanceof NPC) {
-            //TODO NEED DELAY HERE
             Display.MESSAGE_BOX.setText(hasTurn.getName() + " " + currentTurn + "'s turn");
             // monstermove
             monsterAttack((NPC) hasTurn);
+            System.out.println(hasTurn);
             hasTurn.setState("walk");
-            System.out.println("kekw");
 
             //wait for animations to finish
             synchronized (monsterTurn) {
@@ -241,8 +252,6 @@ public class GameMechanics implements Runnable {
         turnController.updateTurn();
 
     }
-
-
 
     private void rollInitiative() {
         //set player initiative
@@ -413,5 +422,17 @@ public class GameMechanics implements Runnable {
 
     public void setCurrentTurn(int currentTurn) {
         this.currentTurn = currentTurn;
+    }
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    public boolean isNewAnimation() {
+        return newAnimation;
+    }
+
+    public void setNewAnimation(boolean newAnimation) {
+        this.newAnimation = newAnimation;
     }
 }

@@ -3,6 +3,7 @@ package Animations;
 import Displays.GameScreen;
 import GameMechanics.*;
 import Main.GameEntity;
+import Main.Tools;
 import NPCs.NPC;
 
 import java.awt.*;
@@ -41,27 +42,32 @@ public class EnemyAnimation implements Animation {
     @Override
     public void run() {
         while (!done) {
+            update();
             if (npc.getId().equals("Goblin")) {
                 switch (npc.getState()) {
                     case "idle":
                         animation(GameObjects.GOBLIN_IDLE, npc, gameScreen, 0);
                         break;
+                    case "getHit":
+                        animation(GameObjects.GOBLIN_GETHIT, npc, gameScreen, 0);
+                        npc.setState("idle");
+                        break;
                     case "attack":
                         animation(GameObjects.GOBLIN_ATTACK, npc, gameScreen, 0);
-                        xc = startX;
+                        break;
+                    case "reverse":
+                        animation(GameObjects.GOBLIN_REVERSE, npc, gameScreen, 10);
+                        break;
+                    case "block":
                         npc.setState("idle");
-                        synchronized (gameMechanics.getMonsterTurn()){
-                            gameMechanics.getMonsterTurn().notifyAll();
-                        }
-                        break;
-                    case "getHit":
-                        break;
-                    case "death":
                         break;
                     case "walk":
                         animation(GameObjects.GOBLIN_WALK, npc, gameScreen, -10);
                         break;
-                    case "block":
+                    case "death":
+                        animation(GameObjects.GOBLIN_DEATH, npc, gameScreen, 4);
+                        gameMechanics.getEnemies().removeIf(GameEntity::isDead);
+                        terminate();
                         break;
                 }
             } else if (npc.getId().equals("Skeleton")) {
@@ -75,15 +81,12 @@ public class EnemyAnimation implements Animation {
                         break;
                     case "attack":
                         animation(GameObjects.SKELETON_ATTACK, npc, gameScreen, 0);
-                        xc = startX;
-                        npc.setActionDone(true);
-                        npc.setState("idle");
-                        synchronized (gameMechanics.getMonsterTurn()){
-                            gameMechanics.getMonsterTurn().notifyAll();
-                        }
+                        break;
+                    case "reverse":
+                        animation(GameObjects.SKELETON_REVERSE, npc, gameScreen, 10);
                         break;
                     case "block":
-                        animation(GameObjects.SKELETON_SHIELD, npc, gameScreen, 0);
+                        animation(GameObjects.SKELETON_BLOCK, npc, gameScreen, 0);
                         npc.setState("idle");
                         break;
                     case "walk":
@@ -91,17 +94,43 @@ public class EnemyAnimation implements Animation {
                         break;
                     case "death":
                         animation(GameObjects.SKELETON_DEATH, npc, gameScreen, 0);
+                        gameMechanics.getEnemies().removeIf(GameEntity::isDead);
+                        terminate();
                         break;
                 }
             }
+            //update();
+        }
 
+    }
 
-            if (xc <= (gameScreen.getPlayerX() + hitBox) && npc.isTurn()) {
+    private void update() {
+
+        if (npc.getCurrentHp() <= 0) {
+            npc.setDead(true);
+            npc.setTargeted(false);
+            npc.setState("death");
+            System.out.println("kekw");
+        }
+
+        if (xc <= (gameScreen.getPlayerX() + hitBox) && npc.isTurn()) {
+            if (!npc.isActionDone()) {
                 npc.setState("attack");
                 if (gameMechanics.getMonsterDamage() != 0) {
                     GameObjects.player.setState("getHit");
                 }
+                npc.setActionDone(true);
+            } else {
+                npc.setState("reverse");
+            }
+        }
 
+        if (npc.getState().equals("reverse")) {
+            if (xc == startX) {
+                npc.setState("idle");
+                synchronized (gameMechanics.getMonsterTurn()) {
+                    gameMechanics.getMonsterTurn().notifyAll();
+                }
             }
         }
     }

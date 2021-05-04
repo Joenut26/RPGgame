@@ -20,7 +20,6 @@ public class Player extends GameEntity {
     protected double currentSpecialResource;
     protected double experience;
     protected double xpToLevelUp = 100;
-    protected boolean actionDone = false;
 
 
     public Player() {
@@ -35,14 +34,6 @@ public class Player extends GameEntity {
 
     public double getBaseHp() {
         return this.baseHp;
-    }
-
-    public boolean isActionDone() {
-        return this.actionDone;
-    }
-
-    public void setActionDone(final boolean actionDone) {
-        this.actionDone = actionDone;
     }
 
     public String getPlayerClass() {
