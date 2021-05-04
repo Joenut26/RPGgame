@@ -28,9 +28,27 @@ public class GameEntity {
     protected Image entityIcon;
     protected String state = "idle";
 
+    protected boolean dead = false;
+    protected boolean actionDone = false;
     protected boolean turn;
     protected double positionX;
     protected double positionY;
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public boolean isActionDone() {
+        return this.actionDone;
+    }
+
+    public void setActionDone(final boolean actionDone) {
+        this.actionDone = actionDone;
+    }
 
     public boolean isTurn() {
         return turn;

@@ -3,6 +3,7 @@ package Animations;
 import Displays.GameScreen;
 import GameMechanics.*;
 import Main.GameEntity;
+import Main.GameState;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -45,28 +46,47 @@ public class PlayerAnimation implements Animation {
                 case "running":
                     animation(GameObjects.WARRIOR_RUNNING, GameObjects.player, gameScreen, 10);
                     break;
+                case "reverse":
+                    animation(GameObjects.WARRIOR_REVERSE, GameObjects.player, gameScreen, -10);
+                    break;
                 case "getHit":
                     animation(GameObjects.WARRIOR_GETHIT, GameObjects.player, gameScreen, 0);
                     GameObjects.player.setState("idle");
                     break;
                 case "attack":
                     animation(GameObjects.WARRIOR_ATTACK, GameObjects.player, gameScreen, 0);
-                    //reset states
-                    xc = startX;
-                    GameObjects.player.setState("idle");
-                    synchronized (gameMechanics.getPlayerTurn()){
-                        gameMechanics.getPlayerTurn().notifyAll();
-                    }
             }
+            //check for game over
+            if(GameObjects.player.getCurrentHp() <= 0){
+                gameMechanics.setGameOver(true);
+                gameScreen.setGameOver(true);
+                terminate();
+                gameMechanics.getGameState().setCurrentState(GameState.State.GAME_OVER);
+                gameMechanics.getGameState().gameStateUpdate();
+            }
+
             if (gameMechanics.getTarget() != null) {
 
                 if (xc + hitBox >= gameMechanics.getTarget().getPositionX() && GameObjects.player.isTurn()) {
-                    GameObjects.player.setState("attack");
-                    if (gameMechanics.getDamage() == 0) {
-                        gameMechanics.getTarget().setState("block");
+                    if (!GameObjects.player.isActionDone()) {
+                        GameObjects.player.setState("attack");
+                        if (gameMechanics.getDamage() == 0) {
+                            gameMechanics.getTarget().setState("block");
+                        } else {
+                            gameMechanics.getTarget().setState("getHit");
+                        }
+                        GameObjects.player.setActionDone(true);
                     } else {
-                        gameMechanics.getTarget().setState("getHit");
+                        GameObjects.player.setState("reverse");
+                    }
+                }
+            }
 
+            if (GameObjects.player.getState().equals("reverse")) {
+                if (xc == startX) {
+                    GameObjects.player.setState("idle");
+                    synchronized (gameMechanics.getPlayerTurn()){
+                        gameMechanics.getPlayerTurn().notifyAll();
                     }
                 }
             }

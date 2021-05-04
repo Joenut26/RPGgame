@@ -3,6 +3,7 @@ package Displays;
 import GameMechanics.GameMechanics;
 import GameMechanics.GameObjects;
 import Listeners.EventHandler;
+import Main.GameState;
 import Main.Tools;
 import Menus.MenuService;
 import NPCs.NPC;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 
 public class Display extends JFrame{
 
+    private final GameState gameState;
     //add game Thread for the event handlers
     private final GameMechanics gameMechanics;
     //set card layout which shows one of the panels from the deck
@@ -31,6 +33,7 @@ public class Display extends JFrame{
     private final BackgroundPanel optionMenu = new BackgroundPanel();
     private final BackgroundPanel characterPanel = new BackgroundPanel();
     private final BackgroundPanel savedGamePanel = new BackgroundPanel();
+    private final BackgroundPanel gameOverPanel = new BackgroundPanel();
     private final JPanel mainPanel = new JPanel();
 
     //Layout to switch between options in the mainPanel
@@ -38,6 +41,8 @@ public class Display extends JFrame{
     private final JPanel optionDeck = new JPanel(currentOption);
     private final JPanel gameOptions = new JPanel();
     private final JPanel attackOptions = new JPanel();
+
+    private final DefaultListModel<NPC> defaultListModel = new DefaultListModel<>();
     private JList<NPC> targets;
     private JList<String> attackList;
     private JScrollPane attackPanel;
@@ -55,11 +60,13 @@ public class Display extends JFrame{
     private boolean attacksCreated = false;
 
     public Display(GameMechanics gameMechanics){
+        this.gameState = new GameState(this);
         this.gameMechanics = gameMechanics;
         this.canvas = new GameScreen(this.gameMechanics);
         mainMenu();
         createCharacter();
         mainPanel();
+        gameOver();
         initDisplay();
         //make sure these are the first to show
         currentPanel.show(mainMenu.getParent(), "mainMenu");
@@ -88,6 +95,7 @@ public class Display extends JFrame{
         panelDeck.add("character", characterPanel);
         panelDeck.add("save", savedGamePanel);
         panelDeck.add("mainPanel", mainPanel);
+        panelDeck.add("gameOver", gameOverPanel);
         mainMenu.setOpaque(false);
         characterPanel.setOpaque(false);
         savedGamePanel.setOpaque(false);
@@ -109,6 +117,13 @@ public class Display extends JFrame{
         this.background = bgImage;
         repaint();
 
+    }
+
+    private void gameOver(){
+        gameOverPanel.setBackgroundImage(Tools.requestImage("src/main/resources/GameOver.PNG"));
+        JButton main = new JButton("Main menu");
+        main.addActionListener(EventHandler.gameOverListener(main, this, gameMechanics));
+        gameOverPanel.add(main);
     }
 
     private void mainMenu() {
@@ -229,7 +244,12 @@ public class Display extends JFrame{
 
     private void targetSelection() {
         //display a list of enemies to attack
-        targets = new JList(gameMechanics.getEnemies().toArray());
+
+        defaultListModel.clear();
+        defaultListModel.addAll(gameMechanics.getEnemies());
+
+        targets = new JList<>(defaultListModel);
+
         //set up needs to be done only once
         if(!targetsCreated) {
             targets.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -324,6 +344,10 @@ public class Display extends JFrame{
         gridBagConstraints.gridheight = gridheight;
         gridBagConstraints.gridx = gridx;
         gridBagConstraints.gridy = gridy;
+    }
+
+    public GameState getGameState() {
+        return gameState;
     }
 
     public ArrayList<String> getClassAbilities() {

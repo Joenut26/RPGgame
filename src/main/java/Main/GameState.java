@@ -10,12 +10,18 @@ public class GameState {
         CHARACTER_STATE,
         SAVED_STATE,
         INGAME_STATE,
-        REWARDS_STATE
+        REWARDS_STATE,
+        GAME_OVER
+
     }
 
-    public static State currentState = State.MENU_STATE;
+    private Display display;
+    private State currentState = State.MENU_STATE;
 
-    public static void gameStateUpdate(Display display) {
+    public GameState(Display display){
+        this.display = display;
+    }
+    public void gameStateUpdate() {
         switch (currentState) {
             case MENU_STATE:
                 display.getCurrentPanel().show(display.getMainMenu().getParent(), "mainMenu");
@@ -31,7 +37,16 @@ public class GameState {
             case CHARACTER_STATE:
                 display.getCurrentPanel().show(display.getCharacterPanel().getParent(), "character");
                 break;
+            case GAME_OVER:
+
         }
     }
 
+    public State getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(State currentState) {
+        this.currentState = currentState;
+    }
 }

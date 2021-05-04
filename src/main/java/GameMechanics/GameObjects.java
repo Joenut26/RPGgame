@@ -6,12 +6,10 @@ import Main.Tools;
 import NPCs.Goblin;
 import NPCs.NPC;
 import NPCs.Skeleton;
-import NPCs.Troll;
 
-import javax.tools.Tool;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
+
 
 public class GameObjects {
 
@@ -19,19 +17,28 @@ public class GameObjects {
     public static final ArrayList<Floor> FLOORS = new ArrayList<>();
     public static final ArrayList<Player> CLASSES = new ArrayList<>();
     public static final ArrayList<NPC> NPC_LIST = new ArrayList<>();
+
     public static final ArrayList<Image> SKELETON_ATTACK = new ArrayList<>();
     public static final ArrayList<Image> SKELETON_IDLE = new ArrayList<>();
     public static final ArrayList<Image> SKELETON_DEATH= new ArrayList<>();
-    public static final ArrayList<Image> SKELETON_SHIELD = new ArrayList<>();
+    public static final ArrayList<Image> SKELETON_BLOCK = new ArrayList<>();
     public static final ArrayList<Image> SKELETON_WALK = new ArrayList<>();
     public static final ArrayList<Image> SKELETON_GETHIT = new ArrayList<>();
+    public static final ArrayList<Image> SKELETON_REVERSE= new ArrayList<>();
+
     public static final ArrayList<Image> GOBLIN_ATTACK = new ArrayList<>();
     public static final ArrayList<Image> GOBLIN_IDLE = new ArrayList<>();
+    public static final ArrayList<Image> GOBLIN_DEATH = new ArrayList<>();
     public static final ArrayList<Image> GOBLIN_WALK = new ArrayList<>();
+    public static final ArrayList<Image> GOBLIN_GETHIT = new ArrayList<>();
+    public static final ArrayList<Image> GOBLIN_REVERSE = new ArrayList<>();
+
     public static final ArrayList<Image> WARRIOR_IDLE = new ArrayList<>();
     public static final ArrayList<Image> WARRIOR_RUNNING = new ArrayList<>();
+    public static final ArrayList<Image> WARRIOR_REVERSE = new ArrayList<>();
     public static final ArrayList<Image> WARRIOR_ATTACK = new ArrayList<>();
     public static final ArrayList<Image> WARRIOR_GETHIT = new ArrayList<>();
+
     public static final ArrayList<Ability> ABILITY_DATABASE = new ArrayList<>();
 
     public static void initializeGameObjects() {
@@ -57,17 +64,24 @@ public class GameObjects {
         //loads images for animations and collects them in IMAGES
         WARRIOR_IDLE.addAll(Tools.addImageToList("src/main/resources/Final Assets/Warrior/Idle"));
         WARRIOR_RUNNING.addAll(Tools.addImageToList("src/main/resources/Final Assets/Warrior/run"));
+        WARRIOR_REVERSE.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Warrior/reverse"));
         WARRIOR_ATTACK.addAll(Tools.addImageToList("src/main/resources/Final Assets/Warrior/attack"));
         WARRIOR_GETHIT.addAll(Tools.addImageToList("src/main/resources/Final Assets/Warrior/getHit"));
+
         SKELETON_IDLE.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/idle"));
         SKELETON_ATTACK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/attack"));
-        SKELETON_SHIELD.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/shield"));
+        SKELETON_BLOCK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/shield"));
         SKELETON_WALK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/walk"));
+        SKELETON_REVERSE.addAll(Tools.addImageToList("src/main/resources/Final Assets/Skeleton/reverse"));
         SKELETON_DEATH.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/death"));
         SKELETON_GETHIT.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Skeleton/getHit"));
-        GOBLIN_ATTACK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/bomb"));
+
+        GOBLIN_ATTACK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/attack"));
         GOBLIN_IDLE.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/idle"));
         GOBLIN_WALK.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/walk"));
+        GOBLIN_DEATH.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/death"));
+        GOBLIN_GETHIT.addAll(Tools.addImageToListReverse("src/main/resources/Final Assets/Goblin/getHit"));
+        GOBLIN_REVERSE.addAll(Tools.addImageToList("src/main/resources/Final Assets/Goblin/reverse"));
     }
 
     private static void initializeAbilityDatabase() {
